@@ -1,1 +1,4 @@
 # CargoSync
+
+# React + TypeScript + Vite
+
