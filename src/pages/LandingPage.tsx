@@ -1,0 +1,166 @@
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { ArrowRight, MapPin } from "lucide-react";
+import { LandingNav } from "../layouts/LandingNav";
+import { HeroNetwork } from "../features/hero/HeroNetwork";
+import { BeforeAfterToggle } from "../features/process/BeforeAfterToggle";
+import { ProcessSection } from "../features/process/ProcessSection";
+import { ReturnShowcase } from "../features/process/ReturnShowcase";
+import { FeatureCard } from "../components/shared/FeatureCard";
+import { NetworkMini, ClusterMini, RouteMini, ReturnMini, SavingsMini, CapacityMini } from "../components/ui/icons/Minis";
+import { Reveal } from "../components/shared/Reveal";
+import { C, font, mono } from "../data/prototype/designTokens";
+
+export function LandingPage() {
+  const navigate = useNavigate();
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    const f = () => setScrolled(window.scrollY > 40);
+    window.addEventListener("scroll", f);
+    return () => window.removeEventListener("scroll", f);
+  }, []);
+
+  return (
+    <div style={{ background: C.ivory, fontFamily: font, color: C.ink }}>
+      <LandingNav scrolled={scrolled} />
+
+      {/* HERO */}
+      <section style={{ padding: "150px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 0.9fr", gap: 60, alignItems: "center" }}>
+          <div>
+            <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontFamily: mono, color: C.slate, marginBottom: 22, border: `1px solid ${C.stone}`, padding: "5px 10px", borderRadius: 999 }}>
+              <MapPin size={12} color={C.coral} /> INDORE NETWORK · MADHYA PRADESH
+            </div>
+            <h1 style={{ fontSize: "clamp(38px, 5vw, 62px)", fontWeight: 700, lineHeight: 1.04, letterSpacing: "-0.02em", margin: 0 }}>
+              Move cargo.<br />Not empty miles.
+            </h1>
+            <p style={{ fontSize: 17, color: "#4B4E58", maxWidth: 460, marginTop: 22, lineHeight: 1.6 }}>
+              CargoSync coordinates shared logistics capacity across multiple operators, optimizes delivery routes, and matches compatible return shipments.
+            </p>
+            <div style={{ display: "flex", gap: 14, marginTop: 30 }}>
+              <button onClick={() => navigate("/login")} style={{ background: C.ink, color: C.ivory, border: "none", padding: "14px 24px", borderRadius: 4, fontSize: 14.5, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+                Explore the platform <ArrowRight size={15} />
+              </button>
+              <button onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "transparent", color: C.ink, border: `1px solid ${C.stone}`, padding: "14px 24px", borderRadius: 4, fontSize: 14.5, fontWeight: 500, cursor: "pointer" }}>
+                See how it works
+              </button>
+            </div>
+            <div style={{ display: "flex", gap: 26, marginTop: 46 }}>
+              {["Shared Capacity", "Route Optimization", "Return-Load Matching"].map((t) => (
+                <div key={t} style={{ fontSize: 12.5, color: C.slate, display: "flex", alignItems: "center", gap: 6 }}>
+                  <div style={{ width: 5, height: 5, borderRadius: "50%", background: C.coral }} /> {t}
+                </div>
+              ))}
+            </div>
+          </div>
+          <div style={{ background: C.navy, borderRadius: 10, padding: 22 }}>
+            <HeroNetwork />
+          </div>
+        </div>
+      </section>
+
+      {/* PROBLEM -> SOLUTION: interactive before/after */}
+      <section style={{ padding: "60px 6%", maxWidth: 1240, margin: "0 auto" }}>
+        <Reveal>
+          <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", maxWidth: 640, marginBottom: 30 }}>
+            Logistics is a network problem.
+          </h2>
+        </Reveal>
+        <BeforeAfterToggle />
+      </section>
+
+      {/* FEATURES */}
+      <section style={{ padding: "40px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
+        <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 34 }}>
+          One network. Multiple advantages.
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
+          <FeatureCard n="01" title="Shared Capacity" text="Coordinate delivery demand across multiple operators instead of routing in isolation." mini={<NetworkMini />} />
+          <FeatureCard n="02" title="Geographic Clustering" text="DBSCAN groups geographically dense delivery requests into feasible service pockets." mini={<ClusterMini />} />
+          <FeatureCard n="03" title="Constrained Routing" text="OR-Tools generates a feasible route considering vehicle capacity and configured constraints." mini={<RouteMini />} />
+          <FeatureCard n="04" title="Return-Load Matching" text="Finds compatible cargo for the return journey, turning empty miles into revenue." mini={<ReturnMini />} />
+          <FeatureCard n="05" title="Measurable Savings" text="Compares baseline independent routing against CargoSync's coordinated result." mini={<SavingsMini />} />
+          <FeatureCard n="06" title="Network Visibility" text="Visualize routes, vehicles and operational impact across the entire network." mini={<CapacityMini />} />
+        </div>
+      </section>
+
+      {/* HOW IT WORKS */}
+      <section id="how-it-works" style={{ padding: "40px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
+        <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 30 }}>
+          How CargoSync works.
+        </h2>
+        <ProcessSection />
+      </section>
+
+      {/* RETURN LOAD SHOWCASE */}
+      <section style={{ padding: "40px 6% 100px", maxWidth: 1240, margin: "0 auto" }}>
+        <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 34 }}>
+          The return journey matters.
+        </h2>
+        <ReturnShowcase />
+      </section>
+
+      {/* IMPACT */}
+      <section style={{ padding: "40px 6% 100px", background: C.cream }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 8 }}>
+            From routes to results.
+          </h2>
+          <div style={{ fontSize: 12, fontFamily: mono, color: C.slate, marginBottom: 30 }}>DEMO SCENARIO · ILLUSTRATIVE VALUES</div>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 14 }}>
+            {[
+              { l: "Distance", v: "-23%" }, { l: "Cost", v: "-27%" }, { l: "Utilization", v: "77%" },
+              { l: "Empty Returns", v: "-61%" }, { l: "Return Loads", v: "8" }, { l: "Est. CO₂", v: "-18%" },
+            ].map((m) => (
+              <div key={m.l} style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 4, padding: "18px 14px" }}>
+                <div style={{ fontSize: 22, fontWeight: 700 }}>{m.v}</div>
+                <div style={{ fontSize: 11.5, color: C.slate, marginTop: 4 }}>{m.l}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* TECH FOUNDATION */}
+      <section style={{ padding: "70px 6%", maxWidth: 1240, margin: "0 auto" }}>
+        <h2 style={{ fontSize: "clamp(22px,2.6vw,30px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 18 }}>
+          Built for real logistics constraints.
+        </h2>
+        <p style={{ fontSize: 14.5, color: "#4B4E58", maxWidth: 620, lineHeight: 1.6, marginBottom: 22 }}>
+          Geographic clustering, capacity constraints, road-network routing, shared logistics coordination and return-load matching — engineered on infrastructure built for it.
+        </p>
+        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          {["React", "FastAPI", "Supabase", "PostGIS", "DBSCAN", "OR-Tools", "OSRM", "Leaflet"].map((t) => (
+            <span key={t} style={{ fontSize: 12, fontFamily: mono, color: C.ink, border: `1px solid ${C.stone}`, padding: "6px 12px", borderRadius: 999 }}>{t}</span>
+          ))}
+        </div>
+      </section>
+
+      {/* FINAL CTA */}
+      <section style={{ padding: "90px 6%", background: C.ink, textAlign: "center" }}>
+        <h2 style={{ fontSize: "clamp(28px,4vw,44px)", fontWeight: 700, color: C.ivory, letterSpacing: "-0.02em", marginBottom: 28 }}>
+          Ready to coordinate the network?
+        </h2>
+        <div style={{ display: "flex", justifyContent: "center", gap: 14 }}>
+          <button onClick={() => navigate("/login")} style={{ background: C.coral, color: C.ivory, border: "none", padding: "14px 26px", borderRadius: 4, fontSize: 14.5, fontWeight: 600, cursor: "pointer" }}>
+            Open Business Portal
+          </button>
+          <button onClick={() => navigate("/login")} style={{ background: "transparent", color: C.ivory, border: "1px solid rgba(250,246,239,0.3)", padding: "14px 26px", borderRadius: 4, fontSize: 14.5, fontWeight: 500, cursor: "pointer" }}>
+            Admin Console
+          </button>
+        </div>
+      </section>
+
+      {/* FOOTER */}
+      <footer style={{ padding: "40px 6%", background: C.ink, borderTop: "1px solid rgba(250,246,239,0.08)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
+        <span style={{ color: C.ivory, fontSize: 13.5, fontWeight: 600 }}>CargoSync AI</span>
+        <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
+          {["Platform", "How it Works", "Optimization", "Impact", "Business Portal", "Admin Console"].map((t) => (
+            <span key={t} style={{ color: "rgba(250,246,239,0.55)", fontSize: 12.5 }}>{t}</span>
+          ))}
+        </div>
+        <span style={{ color: "rgba(250,246,239,0.4)", fontSize: 12 }}>© CargoSync AI</span>
+      </footer>
+    </div>
+  );
+}
