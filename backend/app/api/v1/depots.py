@@ -38,6 +38,9 @@ def create_depot(
     operator_id = profile.operator_id
     if not operator_id:
         raise HTTPException(status_code=400, detail="Cannot create depot without an operator_id")
+        
+    if depot_in.scenario == "DEMO":
+        raise HTTPException(status_code=403, detail="Cannot create data in the protected DEMO scenario")
 
     depot = Depot(
         operator_id=operator_id,
@@ -97,6 +100,9 @@ def update_depot(
     if profile.role != 'ADMIN' and depot.operator_id != profile.operator_id:
         raise HTTPException(status_code=403, detail="Not authorized to modify this depot")
         
+    if depot.scenario == "DEMO" or (depot_in.scenario and depot_in.scenario == "DEMO"):
+        raise HTTPException(status_code=403, detail="Cannot modify data in the protected DEMO scenario")
+        
     update_data = depot_in.model_dump(exclude_unset=True)
     
     if "latitude" in update_data or "longitude" in update_data:
@@ -124,6 +130,9 @@ def delete_depot(
         
     if profile.role != 'ADMIN' and depot.operator_id != profile.operator_id:
         raise HTTPException(status_code=403, detail="Not authorized to delete this depot")
+        
+    if depot.scenario == "DEMO":
+        raise HTTPException(status_code=403, detail="Cannot delete data in the protected DEMO scenario")
         
     try:
         db.delete(depot)

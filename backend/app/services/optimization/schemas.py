@@ -9,6 +9,7 @@ class OptimizationOrder(BaseModel):
     reference_number: str
     operator_id: UUID
     scenario: str
+    origin_depot_id: UUID
     destination_latitude: float
     destination_longitude: float
     weight_kg: float
@@ -17,6 +18,8 @@ class OptimizationOrder(BaseModel):
     pickup_window_end: Optional[datetime] = None
     delivery_window_start: Optional[datetime] = None
     delivery_window_end: Optional[datetime] = None
+    linked_delivery_id: Optional[UUID] = None
+    return_load_id: Optional[UUID] = None  # Set on RL_PICKUP / RL_DELIVERY pseudo-orders
 
 class OptimizationVehicle(BaseModel):
     id: UUID
@@ -37,7 +40,11 @@ class OptimizationDepot(BaseModel):
 class OptimizationInput(BaseModel):
     scenario: str
     operator_id: Optional[UUID] = None
-    depot: OptimizationDepot
+    depots: List[OptimizationDepot]
     vehicles: List[OptimizationVehicle]
     orders: List[OptimizationOrder]
     source_issues: List[DatasetValidationIssue] = Field(default_factory=list)
+
+class OptimizationObjectiveContext(BaseModel):
+    normalization_distance_reference_m: float = Field(..., gt=0.0)
+    normalization_duration_reference_s: float = Field(..., gt=0.0)

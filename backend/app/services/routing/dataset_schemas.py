@@ -24,6 +24,7 @@ class RoutingOrder(BaseModel):
     reference_number: str
     operator_id: UUID
     scenario: str
+    origin_depot_id: Optional[UUID] = None
     destination_latitude: float
     destination_longitude: float
     weight_kg: float

@@ -23,6 +23,9 @@ def create_vehicle(
     operator_id = profile.operator_id
     if not operator_id:
         raise HTTPException(status_code=400, detail="Cannot create vehicle without an operator_id")
+        
+    if vehicle_in.scenario == "DEMO":
+        raise HTTPException(status_code=403, detail="Cannot create data in the protected DEMO scenario")
 
     vehicle = Vehicle(
         operator_id=operator_id,
@@ -93,6 +96,9 @@ def update_vehicle(
     if profile.role != 'ADMIN' and vehicle.operator_id != profile.operator_id:
         raise HTTPException(status_code=403, detail="Not authorized to modify this vehicle")
         
+    if vehicle.scenario == "DEMO" or (vehicle_in.scenario and vehicle_in.scenario == "DEMO"):
+        raise HTTPException(status_code=403, detail="Cannot modify data in the protected DEMO scenario")
+        
     update_data = vehicle_in.model_dump(exclude_unset=True)
         
     for field, value in update_data.items():
@@ -119,6 +125,9 @@ def delete_vehicle(
         
     if profile.role != 'ADMIN' and vehicle.operator_id != profile.operator_id:
         raise HTTPException(status_code=403, detail="Not authorized to delete this vehicle")
+        
+    if vehicle.scenario == "DEMO":
+        raise HTTPException(status_code=403, detail="Cannot delete data in the protected DEMO scenario")
         
     try:
         db.delete(vehicle)

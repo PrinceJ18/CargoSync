@@ -25,18 +25,22 @@ client = TestClient(app)
 
 MOCK_PROFILE = Profile(id=uuid4(), role='OPERATOR', operator_id=uuid4())
 
-# Override auth dependency
-def override_get_current_profile():
-    return MOCK_PROFILE
+@pytest.fixture
+def auth_operator():
+    def override_get_current_profile():
+        return MOCK_PROFILE
+    app.dependency_overrides[get_current_profile] = override_get_current_profile
+    yield
+    app.dependency_overrides.pop(get_current_profile, None)
 
-app.dependency_overrides[get_current_profile] = override_get_current_profile
-
-# Override routing service dependency to bypass RuntimeError on missing config
-def override_get_routing_service():
-    dummy_client = OSRMClient(base_url="http://test")
-    return RoutingService(client=dummy_client)
-
-app.dependency_overrides[get_routing_service] = override_get_routing_service
+@pytest.fixture(autouse=True)
+def bypass_routing_config_check():
+    def override_get_routing_service():
+        dummy_client = OSRMClient(base_url="http://test")
+        return RoutingService(client=dummy_client)
+    app.dependency_overrides[get_routing_service] = override_get_routing_service
+    yield
+    app.dependency_overrides.pop(get_routing_service, None)
 
 def test_coordinate_validation_valid():
     assert is_valid_global_coordinate(22.7196, 75.8577) is True
@@ -127,7 +131,7 @@ def test_osrm_no_route(mock_get):
         asyncio.run(osrm.get_route(coords))
 
 @patch('app.services.routing.routing_service.OSRMClient.get_route', new_callable=AsyncMock)
-def test_api_multi_stop_success(mock_get_route):
+def test_api_multi_stop_success(mock_get_route, auth_operator):
     mock_get_route.return_value = {
         "distance": 5000.0,
         "duration": 600.0,
@@ -149,15 +153,9 @@ def test_api_multi_stop_success(mock_get_route):
     assert data["provider"] == "osrm"
 
 def test_api_unauthenticated():
-    # Remove override to test unauthenticated rejection natively
-    if get_current_profile in app.dependency_overrides:
-        app.dependency_overrides.pop(get_current_profile)
-        
+    # Because we removed the module level override, it inherently fails without auth_operator
     response = client.post("/api/v1/routing/route", json={
         "origin": {"latitude": 22.1, "longitude": 75.1},
         "destination": {"latitude": 22.3, "longitude": 75.3}
     })
     assert response.status_code == 401
-    
-    # Restore override for subsequent tests if any
-    app.dependency_overrides[get_current_profile] = override_get_current_profile

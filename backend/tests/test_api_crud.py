@@ -43,7 +43,7 @@ def auth_admin():
     yield
     app.dependency_overrides.pop(get_current_profile, None)
 
-def test_unauthenticated_request_rejected():
+def test_unauthenticated_request_rejected(mock_db):
     # Will fail at HTTPBearer due to missing token
     response = client.get("/api/v1/depots")
     assert response.status_code == 401

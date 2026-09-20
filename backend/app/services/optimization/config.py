@@ -28,7 +28,9 @@ class TimeWindowPolicy(BaseModel):
 class OptimizationObjectives(BaseModel):
     minimize_distance_weight: float = Field(..., ge=0.0)
     minimize_duration_weight: float = Field(..., ge=0.0)
-    maximize_utilization_weight: float = Field(..., ge=0.0)
+    # Utilization is intentionally reporting-only, not an active solver objective
+    utilization_reporting_only: bool = True
+    
     minimize_vehicles_weight: float = Field(..., ge=0.0)
 
 class ReturnLoadPolicy(BaseModel):
@@ -38,6 +40,10 @@ class ReturnLoadPolicy(BaseModel):
 
 class BaselinePolicy(BaseModel):
     perform_baseline_comparison: bool = True
+
+class MetricsPolicy(BaseModel):
+    cost_per_km_inr: float = Field(..., ge=0.0)
+    emission_factor_kg_per_km: float = Field(..., ge=0.0)
 
 # ---------------------------------------------------------
 # Resolved Config
@@ -53,6 +59,7 @@ class OptimizationConfig(BaseModel):
     objectives: OptimizationObjectives
     return_load: ReturnLoadPolicy
     baseline: BaselinePolicy
+    metrics: MetricsPolicy
 
 # ---------------------------------------------------------
 # Overrides
@@ -81,7 +88,7 @@ class TimeWindowOverrides(BaseModel):
 class ObjectiveOverrides(BaseModel):
     minimize_distance_weight: Optional[float] = Field(None, ge=0.0)
     minimize_duration_weight: Optional[float] = Field(None, ge=0.0)
-    maximize_utilization_weight: Optional[float] = Field(None, ge=0.0)
+    utilization_reporting_only: Optional[bool] = None
     minimize_vehicles_weight: Optional[float] = Field(None, ge=0.0)
 
 class ReturnLoadOverrides(BaseModel):
@@ -91,6 +98,10 @@ class ReturnLoadOverrides(BaseModel):
 
 class BaselineOverrides(BaseModel):
     perform_baseline_comparison: Optional[bool] = None
+
+class MetricsOverrides(BaseModel):
+    cost_per_km_inr: Optional[float] = Field(None, ge=0.0)
+    emission_factor_kg_per_km: Optional[float] = Field(None, ge=0.0)
 
 class OptimizationConfigOverrides(BaseModel):
     """Optional overrides for an optimization run."""
@@ -103,6 +114,7 @@ class OptimizationConfigOverrides(BaseModel):
     objectives: Optional[ObjectiveOverrides] = None
     return_load: Optional[ReturnLoadOverrides] = None
     baseline: Optional[BaselineOverrides] = None
+    metrics: Optional[MetricsOverrides] = None
 
 
 # ---------------------------------------------------------
@@ -136,7 +148,7 @@ def _get_base_defaults(scenario: str) -> dict:
             # Prototype weights
             "minimize_distance_weight": 1.0,
             "minimize_duration_weight": 1.0,
-            "maximize_utilization_weight": 2.0,
+            "utilization_reporting_only": True,
             "minimize_vehicles_weight": 5.0
         },
         "return_load": {
@@ -146,6 +158,10 @@ def _get_base_defaults(scenario: str) -> dict:
         },
         "baseline": {
             "perform_baseline_comparison": True
+        },
+        "metrics": {
+            "cost_per_km_inr": 40.0,
+            "emission_factor_kg_per_km": 0.8
         }
     }
 

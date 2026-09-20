@@ -103,6 +103,7 @@ class RoutingDatasetBuilder:
                     reference_number=order.reference_number,
                     operator_id=order.operator_id,
                     scenario=order.scenario,
+                    origin_depot_id=order.origin_depot_id,
                     destination_latitude=lat,
                     destination_longitude=lon,
                     weight_kg=float(order.weight_kg),

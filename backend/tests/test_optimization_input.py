@@ -13,17 +13,18 @@ from app.services.optimization.exceptions import OptimizationInputError, EmptyWo
 
 def create_valid_routing_dataset(scenario="DEMO"):
     op_id = uuid4()
+    d_id = uuid4()
     return RoutingDataset(
         scenario=scenario,
         operator_id=op_id,
         depots=[
-            RoutingDepot(id=uuid4(), operator_id=op_id, name="Depot A", latitude=22.7, longitude=75.8)
+            RoutingDepot(id=d_id, operator_id=op_id, name="Depot A", latitude=22.7, longitude=75.8)
         ],
         vehicles=[
             RoutingVehicle(id=uuid4(), operator_id=op_id, reference_number="V1", vehicle_type="TRUCK", capacity_kg=1000, status="AVAILABLE")
         ],
         orders=[
-            RoutingOrder(id=uuid4(), reference_number="O1", operator_id=op_id, scenario=scenario, destination_latitude=22.71, destination_longitude=75.81, weight_kg=100, status="PENDING")
+            RoutingOrder(origin_depot_id=d_id, id=uuid4(), reference_number="O1", operator_id=op_id, scenario=scenario, destination_latitude=22.71, destination_longitude=75.81, weight_kg=100, status="PENDING")
         ],
         issues=[]
     )
@@ -33,7 +34,7 @@ def test_valid_demo_dataset():
     dataset = create_valid_routing_dataset("DEMO")
     opt_input = build_optimization_input(dataset)
     assert opt_input.scenario == "DEMO"
-    assert opt_input.depot.id == dataset.depots[0].id
+    assert opt_input.depots[0].id == dataset.depots[0].id
     assert len(opt_input.vehicles) == 1
     assert len(opt_input.orders) == 1
 
@@ -42,7 +43,7 @@ def test_valid_network_dataset():
     dataset = create_valid_routing_dataset("NETWORK")
     opt_input = build_optimization_input(dataset)
     assert opt_input.scenario == "NETWORK"
-    assert opt_input.depot.id == dataset.depots[0].id
+    assert opt_input.depots[0].id == dataset.depots[0].id
 
 def test_issues_preserved_and_invalid_records_excluded():
     # 3. Invalid orders are excluded from optimization orders.
@@ -70,7 +71,7 @@ def test_missing_valid_depot():
     dataset.depots = []
     with pytest.raises(OptimizationInputError) as exc_info:
         build_optimization_input(dataset)
-    assert "Exactly one valid depot is required" in str(exc_info.value)
+    assert "At least one valid depot is required" in str(exc_info.value)
 
 def test_zero_eligible_vehicles():
     # 9. Zero eligible vehicles produces a clear input condition.
@@ -108,9 +109,9 @@ def test_business_data_preserved():
     assert opt_input.vehicles[0].id == dataset.vehicles[0].id
     assert opt_input.vehicles[0].capacity_kg == dataset.vehicles[0].capacity_kg
     
-    assert opt_input.depot.id == dataset.depots[0].id
-    assert opt_input.depot.latitude == dataset.depots[0].latitude
-    assert opt_input.depot.longitude == dataset.depots[0].longitude
+    assert opt_input.depots[0].id == dataset.depots[0].id
+    assert opt_input.depots[0].latitude == dataset.depots[0].latitude
+    assert opt_input.depots[0].longitude == dataset.depots[0].longitude
 
 def test_pure_transformation():
     # 16. No SQLAlchemy objects leak into the optimization schemas.
@@ -118,7 +119,7 @@ def test_pure_transformation():
     dataset = create_valid_routing_dataset("DEMO")
     opt_input = build_optimization_input(dataset)
     
-    assert isinstance(opt_input.depot.id, type(dataset.depots[0].id))
+    assert isinstance(opt_input.depots[0].id, type(dataset.depots[0].id))
     # Using pydantic dump to verify pure dict serializability
     d = opt_input.model_dump()
     assert d["scenario"] == "DEMO"

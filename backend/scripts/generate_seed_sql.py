@@ -64,6 +64,11 @@ def generate_order_ref(seq_number):
     date_code = "2609"
     return f"{prefix}-{date_code}{str(seq_number).zfill(3)}"
 
+def generate_return_load_ref(seq_number):
+    prefix = random.choice(["RL", "RET", "BHA"])
+    date_code = "2609"
+    return f"{prefix}-{date_code}{str(seq_number).zfill(3)}"
+
 def generate_time_windows():
     windows = [
         ("09:00:00", "12:00:00"),
@@ -118,9 +123,11 @@ def build_sql():
     depot_sql = []
     vehicle_sql = []
     order_sql = []
+    return_load_sql = []
     
     # We will use this sequence to ensure unique IDs and reference numbers
     global_order_counter = 1
+    global_return_load_counter = 1
     
     for op_idx, op in enumerate(OPERATORS):
         is_demo = op['demo']
@@ -187,6 +194,25 @@ def build_sql():
                 d_start, d_end = generate_time_windows()
                 
                 order_sql.append(f"  ('{o_id}', '{op['id']}', '{scenario}', '{ref}', '{depot_id}', 'SRID=4326;POINT({olon} {olat})', {weight}, 'PENDING', {p_start}, {p_end}, {d_start}, {d_end})")
+                
+            # RETURN LOADS
+            num_return_loads = random.randint(5, 10) if scenario == 'DEMO' else random.randint(3, 8)
+            for r in range(num_return_loads):
+                rl_id = gen_id(f"RL_{op['id']}_{scenario}_{r}")
+                
+                # Originate near an order cluster, deliver to the depot
+                cluster_center = CENTERS[random.choice(op_clusters)]
+                p_lat, p_lon = generate_location(cluster_center, radius_km=4.0)
+                d_lat, d_lon = generate_location((lat, lon), radius_km=1.0)
+                
+                weight = round(random.uniform(50, 1000), 1)
+                ref = generate_return_load_ref(global_return_load_counter)
+                global_return_load_counter += 1
+                
+                p_start, p_end = generate_time_windows()
+                d_start, d_end = generate_time_windows()
+                
+                return_load_sql.append(f"  ('{rl_id}', '{op['id']}', '{scenario}', '{ref}', 'SRID=4326;POINT({p_lon} {p_lat})', 'SRID=4326;POINT({d_lon} {d_lat})', {weight}, 'PENDING', {p_start}, {p_end}, {d_start}, {d_end})")
     
     sql.append("-- 2. DEPOTS")
     sql.append("INSERT INTO public.depots (id, operator_id, scenario, name, address, location) VALUES")
@@ -205,11 +231,16 @@ def build_sql():
     sql.append(",\n".join(order_sql))
     sql.append("ON CONFLICT (id) DO UPDATE SET operator_id=EXCLUDED.operator_id, scenario=EXCLUDED.scenario, reference_number=EXCLUDED.reference_number, origin_depot_id=EXCLUDED.origin_depot_id, destination_location=EXCLUDED.destination_location, weight_kg=EXCLUDED.weight_kg, status=EXCLUDED.status, pickup_window_start=EXCLUDED.pickup_window_start, pickup_window_end=EXCLUDED.pickup_window_end, delivery_window_start=EXCLUDED.delivery_window_start, delivery_window_end=EXCLUDED.delivery_window_end;")
     sql.append("")
+    sql.append("-- 5. RETURN LOADS")
+    sql.append("INSERT INTO public.return_loads (id, operator_id, scenario, reference_number, pickup_location, delivery_location, weight_kg, status, pickup_window_start, pickup_window_end, delivery_window_start, delivery_window_end) VALUES")
+    sql.append(",\n".join(return_load_sql))
+    sql.append("ON CONFLICT (id) DO UPDATE SET operator_id=EXCLUDED.operator_id, scenario=EXCLUDED.scenario, reference_number=EXCLUDED.reference_number, pickup_location=EXCLUDED.pickup_location, delivery_location=EXCLUDED.delivery_location, weight_kg=EXCLUDED.weight_kg, status=EXCLUDED.status, pickup_window_start=EXCLUDED.pickup_window_start, pickup_window_end=EXCLUDED.pickup_window_end, delivery_window_start=EXCLUDED.delivery_window_start, delivery_window_end=EXCLUDED.delivery_window_end;")
+    sql.append("")
     
     with open(SEED_FILE, 'w', encoding='utf-8') as f:
         f.write("\n".join(sql))
         
-    print(f"Generated {len(OPERATORS)} Operators, {len(depot_sql)} Depots, {len(vehicle_sql)} Vehicles, {len(order_sql)} Orders.")
+    print(f"Generated {len(OPERATORS)} Operators, {len(depot_sql)} Depots, {len(vehicle_sql)} Vehicles, {len(order_sql)} Orders, {len(return_load_sql)} Return Loads.")
 
 if __name__ == "__main__":
     build_sql()

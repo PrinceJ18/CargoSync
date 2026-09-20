@@ -10,7 +10,12 @@ SessionLocal = None
 
 if settings.DATABASE_URL:
     try:
-        engine = create_engine(settings.DATABASE_URL, pool_pre_ping=True)
+        engine = create_engine(
+            settings.DATABASE_URL,
+            pool_pre_ping=True,
+            pool_size=50,
+            max_overflow=20,
+        )
         SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     except Exception as e:
         logger.error(f"Failed to create database engine: {e}")

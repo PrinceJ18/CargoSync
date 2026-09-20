@@ -44,6 +44,9 @@ def create_order(
     operator_id = profile.operator_id
     if not operator_id:
         raise HTTPException(status_code=400, detail="Cannot create order without an operator_id")
+        
+    if order_in.scenario == "DEMO":
+        raise HTTPException(status_code=403, detail="Cannot create data in the protected DEMO scenario")
 
     order = Order(
         operator_id=operator_id,
@@ -121,6 +124,9 @@ def update_order(
     if profile.role != 'ADMIN' and order.operator_id != profile.operator_id:
         raise HTTPException(status_code=403, detail="Not authorized to modify this order")
         
+    if order.scenario == "DEMO" or (order_in.scenario and order_in.scenario == "DEMO"):
+        raise HTTPException(status_code=403, detail="Cannot modify data in the protected DEMO scenario")
+        
     update_data = order_in.model_dump(exclude_unset=True)
     
     if "destination_latitude" in update_data or "destination_longitude" in update_data:
@@ -153,6 +159,9 @@ def delete_order(
         
     if profile.role != 'ADMIN' and order.operator_id != profile.operator_id:
         raise HTTPException(status_code=403, detail="Not authorized to delete this order")
+        
+    if order.scenario == "DEMO":
+        raise HTTPException(status_code=403, detail="Cannot delete data in the protected DEMO scenario")
         
     try:
         db.delete(order)

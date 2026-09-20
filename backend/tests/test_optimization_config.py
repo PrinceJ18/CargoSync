@@ -97,9 +97,20 @@ def test_route_distance_time_constraints_represented_correctly():
 
 def test_objective_config_represented_correctly():
     # 15. Objective configuration is represented correctly.
-    config = resolve_optimization_config("DEMO")
-    assert hasattr(config.objectives, 'minimize_distance_weight')
-    assert config.objectives.minimize_distance_weight >= 0.0
+    from app.services.optimization.config import ObjectiveOverrides
+    overrides = OptimizationConfigOverrides(
+        objectives=ObjectiveOverrides(
+            minimize_distance_weight=2.0,
+            minimize_duration_weight=1.5,
+            utilization_reporting_only=False,
+            minimize_vehicles_weight=10.0
+        )
+    )
+    config = resolve_optimization_config("DEMO", overrides=overrides)
+    assert config.objectives.minimize_distance_weight == 2.0
+    assert config.objectives.minimize_duration_weight == 1.5
+    assert config.objectives.utilization_reporting_only is False
+    assert config.objectives.minimize_vehicles_weight == 10.0
 
 def test_return_load_policy_boundary():
     # 16. Return-load policy is represented without implementing matching.

@@ -17,3 +17,13 @@ class RoutingResponse(BaseModel):
     provider: str = Field(description="The routing provider used, e.g. 'osrm'")
     success: bool
     status_info: Optional[str] = None
+
+class MatrixRequest(BaseModel):
+    locations: List[Coordinate] = Field(..., description="Ordered list of coordinates for the matrix")
+
+class MatrixResponse(BaseModel):
+    distances: List[List[Optional[float]]] = Field(..., description="2D array of distances in meters")
+    durations: List[List[Optional[float]]] = Field(..., description="2D array of durations in seconds")
+    provider: str = Field(description="The routing provider used")
+    success: bool
+    status_info: Optional[str] = None

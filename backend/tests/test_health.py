@@ -4,13 +4,18 @@ from app.db.database import get_db
 
 client = TestClient(app)
 
-def override_get_db():
-    class MockDB:
-        def execute(self, query):
-            pass
-    yield MockDB()
+import pytest
 
-app.dependency_overrides[get_db] = override_get_db
+@pytest.fixture(autouse=True)
+def override_db():
+    def override_get_db():
+        class MockDB:
+            def execute(self, query):
+                pass
+        yield MockDB()
+    app.dependency_overrides[get_db] = override_get_db
+    yield
+    app.dependency_overrides.pop(get_db, None)
 
 def test_health_endpoint():
     response = client.get("/api/v1/health")
