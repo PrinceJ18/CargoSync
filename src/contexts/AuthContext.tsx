@@ -1,11 +1,14 @@
 import React, { createContext, useContext, useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase/client";
+import { request } from "../services/apiClient";
 
 export interface Profile {
   id: string;
   role: 'ADMIN' | 'OPERATOR';
   operator_id: string | null;
+  operator_name: string | null;
+  email: string | null;
 }
 
 interface AuthContextState {
@@ -23,20 +26,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = async () => {
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', userId)
-        .single();
-      
-      if (error) {
-        console.error("Error fetching profile:", error.message);
-        setProfile(null);
-      } else {
-        setProfile(data as Profile);
-      }
+      const data = await request<Profile>("/api/v1/auth/me");
+      setProfile(data);
     } catch (err) {
       console.error("Unexpected error fetching profile:", err);
       setProfile(null);
@@ -53,7 +46,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        await fetchProfile(session.user.id);
+        await fetchProfile();
       } else {
         setProfile(null);
       }
@@ -71,7 +64,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (session?.user) {
         // Fetch profile async without blocking immediate UI state, although
         // typically you might want to show loading. For seamless UX, we fetch.
-        await fetchProfile(session.user.id);
+        await fetchProfile();
       } else {
         setProfile(null);
       }

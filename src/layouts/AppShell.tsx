@@ -4,6 +4,8 @@ import { Search, Bell, Navigation, ChevronDown } from "lucide-react";
 import { C, font, mono } from "../data/prototype/designTokens";
 import { supabase } from "../lib/supabase/client";
 
+import { useAuth } from "../contexts/AuthContext";
+
 const NAV_ITEMS = [
   { label: "Overview", path: "/app/overview" },
   { label: "Orders", path: "/app/orders" },
@@ -17,19 +19,38 @@ const NAV_ITEMS = [
 /**
  * AppShell — the authenticated application layout.
  * Wraps all /app/* routes with the TopNav and shared background.
- * Role is stored temporarily in local state until Phase 2 auth.
  */
 export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
-
-  // Role logic deferred to Phase 2 RLS/Profile sync
+  const { user, profile, isLoading } = useAuth();
 
   const handleLogout = async () => {
     await supabase.auth.signOut();
     navigate("/");
   };
+
+  // Safe display fallbacks
+  let displayName = "Loading...";
+  let displayRole = "Loading";
+  let displayInitials = "--";
+
+  if (!isLoading) {
+    if (profile?.role === 'ADMIN') {
+      displayName = "CargoSync Admin";
+      displayRole = "System Admin";
+      displayInitials = "AD";
+    } else if (profile?.role === 'OPERATOR') {
+      displayName = profile.operator_name || "Business Dashboard";
+      displayRole = "Operator Workspace";
+      displayInitials = displayName.substring(0, 2).toUpperCase();
+    } else {
+      displayName = profile?.email?.split('@')[0] || user?.email?.split('@')[0] || "User";
+      displayRole = "Unknown Role";
+      displayInitials = displayName.substring(0, 2).toUpperCase();
+    }
+  }
 
   return (
     <div style={{ fontFamily: font, background: C.stone, minHeight: "100vh" }}>
@@ -66,10 +87,10 @@ export function AppShell() {
           </div>
           <div style={{ position: "relative" }}>
             <div onClick={() => setMenu(!menu)} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 10px", borderRadius: 6, border: `1px solid ${C.stone}` }}>
-              <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.navy, color: C.ivory, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>PR</div>
+              <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.navy, color: C.ivory, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{displayInitials}</div>
               <div>
-                <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.1 }}>Prince</div>
-                <div style={{ fontSize: 10, color: C.slate, lineHeight: 1.1 }}>Operator</div>
+                <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.1 }}>{displayName}</div>
+                <div style={{ fontSize: 10, color: C.slate, lineHeight: 1.1 }}>{displayRole}</div>
               </div>
               <ChevronDown size={13} color={C.slate} />
             </div>

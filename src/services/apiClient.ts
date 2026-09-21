@@ -85,3 +85,26 @@ export const apiClient = {
   delete: <T>(endpoint: string, options?: RequestInit) => 
     request<T>(endpoint, { ...options, method: "DELETE" }),
 };
+
+import type { Order, Vehicle, ReturnLoad, AnalyticsMetricsResponse, OptimizationRunRequest, OptimizationRunResponse, Depot } from "../types/api";
+
+export const api = {
+  orders: {
+    list: () => apiClient.get<Order[]>("/orders"),
+  },
+  fleet: {
+    listVehicles: () => apiClient.get<Vehicle[]>("/vehicles"),
+    listDepots: () => apiClient.get<Depot[]>("/depots"),
+  },
+  returnLoads: {
+    list: () => apiClient.get<ReturnLoad[]>("/return-loads"),
+  },
+  optimization: {
+    run: (data: OptimizationRunRequest) => apiClient.post<OptimizationRunResponse>("/optimization/runs", data),
+    getLatest: (scenario = "DEMO") => apiClient.get<OptimizationRunResponse>(`/optimization/latest?scenario=${scenario}`),
+  },
+  analytics: {
+    getMetrics: (scenario = "DEMO") => apiClient.get<AnalyticsMetricsResponse>(`/analytics/metrics?scenario=${scenario}`),
+  }
+};
+
