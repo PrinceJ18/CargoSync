@@ -1,80 +1,235 @@
 import { useState, useEffect } from "react";
 import {
-  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
-  ResponsiveContainer, AreaChart, Area,
+  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
+  ResponsiveContainer
 } from "recharts";
-import { C } from "../data/prototype/designTokens";
+import { useNavigate } from "react-router-dom";
+import { Settings, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
+import { C, mono } from "../data/prototype/designTokens";
 import { Panel } from "../components/shared/Panel";
+import type { OptimizationRunResponse } from "../types/api";
 
 export function ImpactPage() {
-  const [metrics, setMetrics] = useState<any>(null);
+  const navigate = useNavigate();
+  const [scenario, setScenario] = useState("DEMO");
+  const [runData, setRunData] = useState<OptimizationRunResponse | null>(null);
+  const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "success" | "error">("loading");
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchImpactData = () => {
+    let active = true;
+    setFetchStatus("loading");
+    setError(null);
+    setRunData(null);
+    import("../services/apiClient").then(({ api }) => {
+      api.optimization.getLatest(scenario)
+        .then((optRes) => {
+          if (!active) return;
+          setRunData(optRes);
+          setFetchStatus("success");
+        })
+        .catch((err: import("../types/api").ApiError) => {
+          if (!active) return;
+          if (err.status === 404 || err.code === "NOT_FOUND") {
+            setRunData(null);
+            setFetchStatus("success");
+          } else {
+            console.error(err);
+            setError(err.message || "Failed to fetch impact data.");
+            setFetchStatus("error");
+          }
+        });
+    });
+    return () => { active = false; };
+  };
 
   useEffect(() => {
-    import("../services/apiClient").then(({ api }) => {
-      api.analytics.getMetrics("DEMO").then(data => setMetrics(data)).catch(console.error);
-    });
-  }, []);
+    return fetchImpactData();
+  }, [scenario]);
 
-  const impactData = metrics ? [
-    { name: "Baseline", distance: metrics.total_distance + metrics.empty_returns_reduced * 1000, cost: metrics.total_cost * 1.2 },
-    { name: "Optimized", distance: metrics.total_distance, cost: metrics.total_cost }
+  // Early returns
+  if (fetchStatus === "loading") {
+    return (
+      <div style={{ padding: "20px 24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+          <div style={{ fontSize: 20, fontWeight: 700 }}>Impact & ROI</div>
+          <div style={{ width: 240 }}>
+            <select 
+              value={scenario} 
+              onChange={(e) => setScenario(e.target.value)}
+              disabled
+              style={{ width: "100%", padding: "6px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 12 }}
+            >
+              <option value="DEMO">Regional Network (Standard)</option>
+              <option value="NETWORK">Extended Network (High Volume)</option>
+            </select>
+          </div>
+        </div>
+        <div style={{ fontSize: 13, color: C.slate, marginBottom: 20 }}>Operational savings and environmental impact for the {scenario} scenario.</div>
+        
+        <div style={{ padding: 40, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, color: C.slate, gap: 10 }}>
+          <Loader2 size={24} className="spin" /> Loading impact analytics...
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchStatus === "error") {
+    return (
+      <div style={{ padding: "20px 24px" }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+          <div style={{ fontSize: 20, fontWeight: 700 }}>Impact & ROI</div>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, gap: 12 }}>
+          <AlertCircle size={24} color={C.red} />
+          <div style={{ fontSize: 14, color: C.ink }}>{error}</div>
+          <button onClick={fetchImpactData} style={{ background: C.ink, color: C.ivory, border: "none", padding: "8px 18px", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+            <RefreshCw size={13} /> Retry
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!runData || runData.status !== "COMPLETED") {
+    return (
+      <div style={{ padding: 26 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Impact</div>
+        <div style={{ fontSize: 13, color: C.slate, marginBottom: 16 }}>Operational savings and environmental impact.</div>
+        
+        <div style={{ marginBottom: 16, width: 240 }}>
+          <select 
+            value={scenario} 
+            onChange={(e) => setScenario(e.target.value)}
+            style={{ width: "100%", padding: "8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 13 }}
+          >
+            <option value="DEMO">Regional Network (Standard)</option>
+            <option value="NETWORK">Extended Network (High Volume)</option>
+          </select>
+        </div>
+
+        <div style={{ padding: 40, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: `1px dashed ${C.stone}`, borderRadius: 6, color: C.slate, marginTop: 20, background: C.cream }}>
+          <div style={{ marginBottom: 12, fontWeight: 600 }}>
+            {runData && runData.status === "FAILED" 
+              ? "The latest optimization run failed. Impact metrics are unavailable." 
+              : "No optimization impact data available yet. Run an optimization first."}
+          </div>
+          <button 
+            onClick={() => navigate("/app/optimize")}
+            style={{ background: C.coral, color: C.ivory, border: "none", padding: "8px 16px", borderRadius: 4, fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+          >
+            <Settings size={14} /> Go to Optimize
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Derived Metrics
+  const { metrics, routes } = runData;
+  const returnLoadsMatched = routes?.filter(r => r.return_load).length ?? 0;
+  
+  const bDist = metrics?.baseline?.distance_meters;
+  const oDist = metrics?.optimized?.distance_meters;
+  const bVeh = metrics?.baseline?.vehicles_used;
+  const oVeh = metrics?.optimized?.vehicles_used;
+
+  const distanceData = (bDist != null && oDist != null) ? [
+    { name: "Baseline", value: parseFloat((bDist / 1000).toFixed(1)) },
+    { name: "Optimized", value: parseFloat((oDist / 1000).toFixed(1)) }
   ] : [];
 
-  const utilTrend = metrics ? [
-    { run: "Run 1", util: Math.max(0, metrics.utilization_pct - 10) },
-    { run: "Run 2", util: Math.max(0, metrics.utilization_pct - 5) },
-    { run: "Latest", util: metrics.utilization_pct }
+  const vehicleData = (bVeh != null && oVeh != null) ? [
+    { name: "Baseline", value: bVeh },
+    { name: "Optimized", value: oVeh }
   ] : [];
 
-  const returnTrend = metrics ? [
-    { run: "Run 1", loads: 0 },
-    { run: "Run 2", loads: Math.floor(metrics.return_loads_matched / 2) },
-    { run: "Latest", loads: metrics.return_loads_matched }
-  ] : [];
+  const vehRedPct = (bVeh && bVeh > 0 && oVeh != null) ? ((bVeh - oVeh) / bVeh) * 100 : null;
+  const distRedPct = (bDist && bDist > 0 && oDist != null) ? ((bDist - oDist) / bDist) * 100 : null;
 
   return (
-    <div style={{ padding: 26 }}>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Impact</div>
-      <div style={{ fontSize: 13, color: C.slate, marginBottom: 20 }}>{metrics ? "Aggregate results across latest optimization runs." : "Loading metrics..."}</div>
+    <div style={{ padding: "20px 24px" }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+        <div style={{ fontSize: 20, fontWeight: 700 }}>Impact & ROI</div>
+        <div style={{ width: 240 }}>
+          <select 
+            value={scenario} 
+            onChange={(e) => setScenario(e.target.value)}
+            style={{ width: "100%", padding: "6px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 12 }}
+          >
+            <option value="DEMO">Regional Network (Standard)</option>
+            <option value="NETWORK">Extended Network (High Volume)</option>
+          </select>
+        </div>
+      </div>
+      <div style={{ fontSize: 13, color: C.slate, marginBottom: 20 }}>Operational savings and environmental impact for the {scenario} scenario.</div>
+
+      {/* KPI Cards */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
+        <KpiCard label="Distance Saved" value={metrics?.savings?.distance_saved_meters != null ? `${(metrics.savings.distance_saved_meters / 1000).toFixed(1)} km` : "—"} highlight={C.emerald} />
+        <KpiCard label="Cost Saved" value={metrics?.savings?.cost_saved_inr != null ? `₹${metrics.savings.cost_saved_inr.toLocaleString()}` : "—"} highlight={C.emerald} />
+        <KpiCard label="CO₂ Avoided" value={metrics?.savings?.co2_saved_kg != null ? `${metrics.savings.co2_saved_kg.toFixed(1)} kg` : "—"} highlight={C.emerald} />
+        <KpiCard label="Vehicles Reduced" value={vehRedPct != null ? `${vehRedPct.toFixed(1)}%` : "—"} />
+        <KpiCard label="Return Loads" value={returnLoadsMatched > 0 ? String(returnLoadsMatched) : "0"} />
+      </div>
+
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
         <Panel title="Before vs After — Distance (km)">
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={impactData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={C.stone} />
-              <XAxis dataKey="name" fontSize={11} /><YAxis fontSize={11} />
-              <Tooltip /><Bar dataKey="distance" fill={C.coral} radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
+          {distanceData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={distanceData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={C.stone} vertical={false} />
+                <XAxis dataKey="name" fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} />
+                <YAxis fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} />
+                <Tooltip cursor={{ fill: C.cream }} contentStyle={{ borderRadius: 6, border: `1px solid ${C.stone}` }} />
+                <Bar dataKey="value" fill={C.coral} radius={[3, 3, 0, 0]} maxBarSize={60} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ height: 240, display: "flex", alignItems: "center", justifyContent: "center", color: C.slate, fontSize: 13 }}>
+              Distance data unavailable.
+            </div>
+          )}
+          {distRedPct != null && (
+            <div style={{ textAlign: "center", fontSize: 12, color: C.slate, marginTop: 8 }}>
+              Represents a <strong style={{ color: C.emerald }}>{distRedPct.toFixed(1)}%</strong> reduction in total travel distance.
+            </div>
+          )}
         </Panel>
-        <Panel title="Before vs After — Cost (₹)">
-          <ResponsiveContainer width="100%" height={200}>
-            <BarChart data={impactData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={C.stone} />
-              <XAxis dataKey="name" fontSize={11} /><YAxis fontSize={11} />
-              <Tooltip /><Bar dataKey="cost" fill={C.navy} radius={[3, 3, 0, 0]} />
-            </BarChart>
-          </ResponsiveContainer>
-        </Panel>
-        <Panel title="Utilization Trend">
-          <ResponsiveContainer width="100%" height={200}>
-            <LineChart data={utilTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke={C.stone} />
-              <XAxis dataKey="run" fontSize={11} /><YAxis fontSize={11} />
-              <Tooltip /><Line type="monotone" dataKey="util" stroke={C.coral} strokeWidth={2} dot={false} />
-            </LineChart>
-          </ResponsiveContainer>
-        </Panel>
-        <Panel title="Return Load Activity">
-          <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={returnTrend}>
-              <CartesianGrid strokeDasharray="3 3" stroke={C.stone} />
-              <XAxis dataKey="run" fontSize={11} /><YAxis fontSize={11} />
-              <Tooltip /><Area type="monotone" dataKey="loads" stroke={C.navy} fill={C.peach} />
-            </AreaChart>
-          </ResponsiveContainer>
+
+        <Panel title="Before vs After — Fleet Size (Vehicles)">
+          {vehicleData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={240}>
+              <BarChart data={vehicleData}>
+                <CartesianGrid strokeDasharray="3 3" stroke={C.stone} vertical={false} />
+                <XAxis dataKey="name" fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} />
+                <YAxis fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} allowDecimals={false} />
+                <Tooltip cursor={{ fill: C.cream }} contentStyle={{ borderRadius: 6, border: `1px solid ${C.stone}` }} />
+                <Bar dataKey="value" fill={C.navy} radius={[3, 3, 0, 0]} maxBarSize={60} />
+              </BarChart>
+            </ResponsiveContainer>
+          ) : (
+            <div style={{ height: 240, display: "flex", alignItems: "center", justifyContent: "center", color: C.slate, fontSize: 13 }}>
+              Vehicle count data unavailable.
+            </div>
+          )}
+          {vehRedPct != null && (
+            <div style={{ textAlign: "center", fontSize: 12, color: C.slate, marginTop: 8 }}>
+              Represents a <strong style={{ color: C.emerald }}>{vehRedPct.toFixed(1)}%</strong> reduction in fleet dispatch.
+            </div>
+          )}
         </Panel>
       </div>
+
     </div>
   );
 }
 
+function KpiCard({ label, value, highlight }: { label: string; value: string; highlight?: string }) {
+  return (
+    <div style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: "16px 20px" }}>
+      <div style={{ fontSize: 11, color: C.slate, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
+      <div style={{ fontSize: 24, fontWeight: 700, color: highlight || C.ink, fontFamily: mono }}>{value}</div>
+    </div>
+  );
+}

@@ -1,6 +1,7 @@
-import { useState, useEffect, useRef, useCallback, useMemo } from "react";
+import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap } from "react-leaflet";
-import { Play, Pause, RotateCcw, Truck } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { Truck, Settings, Play, Pause, RotateCcw, AlertCircle, Loader2, RefreshCw } from "lucide-react";
 import { C, mono } from "../data/prototype/designTokens";
 import { Panel } from "../components/shared/Panel";
 import type { OptimizationRunResponse } from "../types/api";
@@ -74,7 +75,7 @@ function FitBounds({ positions }: { positions: [number, number][] }) {
   return null;
 }
 
-// ─── Vehicle animation marker (imperative Leaflet) ──────────────
+// ─── Vehicle animation marker ──────────────────────────────
 function VehicleMarker({ positions, cumDist, progress }: { positions: [number, number][]; cumDist: number[]; progress: number }) {
   const map = useMap();
   const markerRef = useRef<L.Marker | null>(null);
@@ -107,12 +108,15 @@ function VehicleMarker({ positions, cumDist, progress }: { positions: [number, n
 type PlayState = "idle" | "playing" | "paused" | "completed";
 
 export function RoutesPage() {
+  const navigate = useNavigate();
+  const [scenario, setScenario] = useState("DEMO");
   const [runData, setRunData] = useState<OptimizationRunResponse | null>(null);
   const [vehicles, setVehicles] = useState<Record<string, any>>({});
   const [orders, setOrders] = useState<Record<string, any>>({});
   const [returnLoads, setReturnLoads] = useState<Record<string, any>>({});
-  const [loading, setLoading] = useState(true);
+  const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "success" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
+  const [partialErrors, setPartialErrors] = useState<string[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Animation
@@ -125,31 +129,70 @@ export function RoutesPage() {
 
   // ─── Data fetch ───
   useEffect(() => {
+    let active = true;
+    setFetchStatus("loading");
+    setError(null);
+    setPartialErrors([]);
+    setRunData(null);
     import("../services/apiClient").then(({ api }) => {
-      Promise.all([
-        api.optimization.getLatest("DEMO"),
-        api.fleet.listVehicles(),
-        api.orders.list(),
-        api.returnLoads.list()
-      ]).then(([data, fleetData, ordersData, rlData]) => {
-        setRunData(data);
-        const vMap: Record<string, any> = {};
-        fleetData.forEach(v => { vMap[v.id] = v; });
-        const oMap: Record<string, any> = {};
-        ordersData.forEach(o => { oMap[o.id] = o; });
-        const rlMap: Record<string, any> = {};
-        rlData.forEach(r => { rlMap[r.id] = r; });
-        setVehicles(vMap);
-        setOrders(oMap);
-        setReturnLoads(rlMap);
-        setLoading(false);
-      }).catch(err => {
-        console.error(err);
-        setError("Failed to fetch route data.");
-        setLoading(false);
-      });
+      // Use Promise.allSettled for fleet/orders to prevent complete failure if they fail, but optimization must succeed
+      api.optimization.getLatest(scenario)
+        .then(async (optRes) => {
+          if (!active) return;
+          setRunData(optRes);
+
+          // Once optimization is fetched, fetch related data safely
+          const [fRes, oRes, rlRes] = await Promise.allSettled([
+            api.fleet.listVehicles(),
+            api.orders.list(),
+            api.returnLoads.list()
+          ]);
+
+          if (!active) return;
+
+          const errs: string[] = [];
+          const vMap: Record<string, any> = {};
+          const oMap: Record<string, any> = {};
+          const rlMap: Record<string, any> = {};
+
+          if (fRes.status === "fulfilled") {
+            fRes.value.items.forEach((v: any) => { vMap[v.id] = v; });
+          } else {
+            errs.push("Vehicles");
+          }
+
+          if (oRes.status === "fulfilled") {
+            oRes.value.items.forEach((o: any) => { oMap[o.id] = o; });
+          } else {
+            errs.push("Orders");
+          }
+
+          if (rlRes.status === "fulfilled") {
+            rlRes.value.items.forEach((r: any) => { rlMap[r.id] = r; });
+          } else {
+            errs.push("Return Loads");
+          }
+          
+          setVehicles(vMap);
+          setOrders(oMap);
+          setReturnLoads(rlMap);
+          setPartialErrors(errs);
+          setFetchStatus("success");
+        })
+        .catch(err => {
+          if (!active) return;
+          if (err.response?.status === 404) {
+            setRunData(null);
+            setFetchStatus("success");
+          } else {
+            console.error(err);
+            setError("Failed to fetch route data.");
+            setFetchStatus("error");
+          }
+        });
     });
-  }, []);
+    return () => { active = false; };
+  }, [scenario]);
 
   // ─── Derived ───
   const route = runData?.routes?.[selectedIndex] || runData?.routes?.[0];
@@ -222,14 +265,98 @@ export function RoutesPage() {
   }
 
   // ─── Early returns ───
-  if (loading) return <div style={{ padding: 26, fontSize: 14, color: C.slate }}>Loading routes...</div>;
-  if (error) return <div style={{ padding: 26, fontSize: 14, color: C.coral }}>{error}</div>;
-  if (!runData || !runData.routes || runData.routes.length === 0) {
+  if (fetchStatus === "loading") {
+    return (
+      <div style={{ padding: 26, display: "flex", flexDirection: "column", height: "calc(100vh - 60px)" }}>
+        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Route Intelligence</div>
+        <div style={{ fontSize: 13, color: C.slate, marginBottom: 16 }}>Inspect optimized route geometries, stop schedules, and vehicle dispatch.</div>
+        
+        <div style={{ marginBottom: 16, width: 240 }}>
+          <select 
+            value={scenario} 
+            onChange={(e) => setScenario(e.target.value)}
+            disabled
+            style={{ width: "100%", padding: "8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 13 }}
+          >
+            <option value="DEMO">Regional Network (Standard)</option>
+            <option value="NETWORK">Extended Network (High Volume)</option>
+          </select>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1, color: C.slate, gap: 10 }}>
+          <Loader2 size={18} className="spin" /> Loading route data...
+        </div>
+      </div>
+    );
+  }
+
+  if (fetchStatus === "error") {
+    return (
+      <div style={{ padding: 26, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "calc(100vh - 60px)", gap: 12 }}>
+        <AlertCircle size={24} color={C.red} />
+        <div style={{ fontSize: 14, color: C.ink }}>{error || "Failed to load route data."}</div>
+        <button onClick={() => setScenario(scenario)} style={{ background: C.ink, color: C.ivory, border: "none", padding: "8px 18px", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
+          <RefreshCw size={13} /> Retry
+        </button>
+      </div>
+    );
+  }
+
+  if (!runData) {
     return (
       <div style={{ padding: 26 }}>
         <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Route Intelligence</div>
-        <div style={{ padding: 40, textAlign: "center", border: `1px dashed ${C.stone}`, borderRadius: 6, color: C.slate, marginTop: 20 }}>
-          No optimized routes available.
+        <div style={{ fontSize: 13, color: C.slate, marginBottom: 16 }}>Inspect optimized route geometries, stop schedules, and vehicle dispatch.</div>
+        
+        <div style={{ marginBottom: 16, width: 240 }}>
+          <select 
+            value={scenario} 
+            onChange={(e) => setScenario(e.target.value)}
+            style={{ width: "100%", padding: "8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 13 }}
+          >
+            <option value="DEMO">Regional Network (Standard)</option>
+            <option value="NETWORK">Extended Network (High Volume)</option>
+          </select>
+        </div>
+
+        <div style={{ padding: 40, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: `1px dashed ${C.stone}`, borderRadius: 6, color: C.slate, marginTop: 20, background: C.cream }}>
+          <div style={{ marginBottom: 12, fontWeight: 600 }}>No optimization run available for this scenario.</div>
+          <button 
+            onClick={() => navigate("/app/optimize")}
+            style={{ background: C.coral, color: C.ivory, border: "none", padding: "8px 16px", borderRadius: 4, fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+          >
+            <Settings size={14} /> Go to Optimize
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  if (!runData.routes || runData.routes.length === 0) {
+    return (
+      <div style={{ padding: 26 }}>
+        <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Route Intelligence</div>
+        <div style={{ fontSize: 13, color: C.slate, marginBottom: 16 }}>Inspect optimized route geometries, stop schedules, and vehicle dispatch.</div>
+        
+        <div style={{ marginBottom: 16, width: 240 }}>
+          <select 
+            value={scenario} 
+            onChange={(e) => setScenario(e.target.value)}
+            style={{ width: "100%", padding: "8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 13 }}
+          >
+            <option value="DEMO">Regional Network (Standard)</option>
+            <option value="NETWORK">Extended Network (High Volume)</option>
+          </select>
+        </div>
+
+        <div style={{ padding: 40, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", border: `1px dashed ${C.stone}`, borderRadius: 6, color: C.slate, marginTop: 20, background: C.cream }}>
+          <div style={{ marginBottom: 12, fontWeight: 600 }}>Optimization completed but produced no routes.</div>
+          <button 
+            onClick={() => navigate("/app/optimize")}
+            style={{ background: C.coral, color: C.ivory, border: "none", padding: "8px 16px", borderRadius: 4, fontWeight: 600, fontSize: 13, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}
+          >
+            <Settings size={14} /> Review Optimization
+          </button>
         </div>
       </div>
     );
@@ -254,8 +381,27 @@ export function RoutesPage() {
   // ─── UI ────────────────────────────────────────────────────────
   return (
     <div style={{ padding: "20px 24px" }}>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Route Intelligence</div>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
+        <div style={{ fontSize: 20, fontWeight: 700 }}>Route Intelligence</div>
+        <div style={{ width: 240 }}>
+          <select 
+            value={scenario} 
+            onChange={(e) => setScenario(e.target.value)}
+            style={{ width: "100%", padding: "6px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 12 }}
+          >
+            <option value="DEMO">Regional Network (Standard)</option>
+            <option value="NETWORK">Extended Network (High Volume)</option>
+          </select>
+        </div>
+      </div>
       <div style={{ fontSize: 13, color: C.slate, marginBottom: 16 }}>Inspect optimized route geometries, stop schedules, and vehicle dispatch.</div>
+
+      {partialErrors.length > 0 && (
+        <div style={{ background: "#FEE2E2", color: "#991B1B", padding: "10px 16px", borderRadius: 6, fontSize: 13, display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+          <AlertCircle size={16} />
+          Failed to load relation data ({partialErrors.join(", ")}). Route stops will display raw IDs instead of entity details.
+        </div>
+      )}
 
       <div style={{ display: "grid", gridTemplateColumns: "240px 1fr 300px", gap: 20, alignItems: "start" }}>
 
@@ -380,7 +526,14 @@ export function RoutesPage() {
 
           {/* Route Identity */}
           <div style={{ background: C.navy, borderRadius: 6, padding: 16 }}>
-            <div style={{ fontSize: 10.5, fontFamily: mono, color: C.peach, letterSpacing: 1, marginBottom: 8 }}>ROUTE {String(selectedIndex + 1).padStart(2, "0")}</div>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 8 }}>
+              <div style={{ fontSize: 10.5, fontFamily: mono, color: C.peach, letterSpacing: 1 }}>ROUTE {String(selectedIndex + 1).padStart(2, "0")}</div>
+              {runData.status && (
+                <div style={{ fontSize: 10, background: "rgba(255,255,255,0.1)", color: C.ivory, padding: "2px 6px", borderRadius: 4 }}>
+                  {runData.status}
+                </div>
+              )}
+            </div>
             <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 10 }}>
               <Truck size={16} color={C.ivory} />
               <span style={{ fontSize: 15, fontWeight: 700, color: C.ivory, fontFamily: mono }}>{vehRef}</span>
@@ -395,10 +548,10 @@ export function RoutesPage() {
           <div style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: 14 }}>
             <div style={{ fontSize: 10.5, fontFamily: mono, color: C.slate, letterSpacing: 1, marginBottom: 10 }}>OPERATIONAL METRICS</div>
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-              <MetricCell label="Distance" value={`${(route!.total_distance_meters / 1000).toFixed(1)} km`} />
-              <MetricCell label="Duration" value={fmtDuration(route!.total_duration_seconds)} />
-              <MetricCell label="Total Stops" value={String(route!.stops.length)} />
-              <MetricCell label="Deliveries" value={String(deliveryCount)} />
+              <MetricCell label="Distance" value={route!.total_distance_meters != null ? `${(route!.total_distance_meters / 1000).toFixed(1)} km` : "—"} />
+              <MetricCell label="Duration" value={route!.total_duration_seconds != null ? fmtDuration(route!.total_duration_seconds) : "—"} />
+              <MetricCell label="Total Stops" value={route!.stops?.length != null ? String(route!.stops.length) : "—"} />
+              <MetricCell label="Deliveries" value={deliveryCount != null ? String(deliveryCount) : "—"} />
             </div>
           </div>
 
@@ -445,7 +598,7 @@ export function RoutesPage() {
           {/* Stop Timeline */}
           <div style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: 14 }}>
             <div style={{ fontSize: 10.5, fontFamily: mono, color: C.slate, letterSpacing: 1, marginBottom: 10 }}>STOP SCHEDULE</div>
-            {route!.stops.length === 0 ? (
+            {!route!.stops || route!.stops.length === 0 ? (
               <div style={{ fontSize: 12, color: C.slate }}>No stops recorded.</div>
             ) : (
               <div style={{ display: "flex", flexDirection: "column" }}>
