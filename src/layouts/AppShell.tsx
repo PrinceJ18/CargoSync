@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { Search, Bell, Navigation, ChevronDown } from "lucide-react";
 import { C, font, mono } from "../data/prototype/designTokens";
@@ -24,12 +24,30 @@ export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
   const { user, profile, isLoading } = useAuth();
 
-  const handleLogout = async () => {
+  // Close dropdown on route change
+  useEffect(() => {
+    setMenu(false);
+  }, [location.pathname]);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    if (!menu) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
+        setMenu(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [menu]);
+
+  const handleLogout = useCallback(async () => {
     await supabase.auth.signOut();
     navigate("/");
-  };
+  }, [navigate]);
 
   // Safe display fallbacks
   let displayName = "Loading...";
@@ -53,7 +71,7 @@ export function AppShell() {
   }
 
   return (
-    <div style={{ fontFamily: font, background: C.stone, minHeight: "100vh" }}>
+    <div style={{ fontFamily: font, background: C.stone, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <style>{`.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* Top Navigation */}
@@ -67,7 +85,7 @@ export function AppShell() {
           </Link>
           <div style={{ display: "flex", gap: 4 }}>
             {NAV_ITEMS.map((item) => {
-              const isActive = location.pathname === item.path;
+              const isActive = location.pathname === item.path || (item.path !== "/app/overview" && location.pathname.startsWith(item.path + "/"));
               return (
                 <Link key={item.label} to={item.path} style={{
                   background: isActive ? C.stone : "transparent",
@@ -85,7 +103,7 @@ export function AppShell() {
           <div style={{ fontSize: 11, fontFamily: mono, color: C.emerald, display: "flex", alignItems: "center", gap: 5 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.emerald }} /> LIVE
           </div>
-          <div style={{ position: "relative" }}>
+          <div style={{ position: "relative" }} ref={menuRef}>
             <div onClick={() => setMenu(!menu)} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 10px", borderRadius: 6, border: `1px solid ${C.stone}` }}>
               <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.navy, color: C.ivory, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{displayInitials}</div>
               <div>
@@ -95,7 +113,7 @@ export function AppShell() {
               <ChevronDown size={13} color={C.slate} />
             </div>
             {menu && (
-              <div style={{ position: "absolute", right: 0, top: 42, background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, width: 160, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", overflow: "hidden" }}>
+              <div style={{ position: "absolute", right: 0, top: 42, background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, width: 160, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", overflow: "hidden", zIndex: 50 }}>
                 {["Profile", "Settings", "Workspace"].map((m) => (
                   <div key={m} style={{ padding: "10px 14px", fontSize: 13, cursor: "pointer" }}>{m}</div>
                 ))}
@@ -107,7 +125,10 @@ export function AppShell() {
       </nav>
 
       {/* Page content outlet */}
-      <Outlet />
+      <main style={{ flex: 1, minHeight: 0 }}>
+        <Outlet />
+      </main>
     </div>
   );
 }
+
