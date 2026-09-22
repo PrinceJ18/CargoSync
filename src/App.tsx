@@ -12,6 +12,7 @@ import { RoutesPage } from "./pages/RoutesPage";
 import { ImpactPage } from "./pages/ImpactPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { AppShell } from "./layouts/AppShell";
+import { ErrorBoundary } from "./components/shared/ErrorBoundary";
 
 export default function CargoSyncPrototype() {
   return (
@@ -24,7 +25,11 @@ export default function CargoSyncPrototype() {
 
           {/* Application Experience (Requires Auth and AppShell) */}
           <Route path="/app" element={<ProtectedRoute />}>
-            <Route element={<AppShell />}>
+            <Route element={
+              <ErrorBoundary>
+                <AppShell />
+              </ErrorBoundary>
+            }>
               {/* Default redirect to overview */}
               <Route index element={<Navigate to="/app/overview" replace />} />
               
@@ -35,6 +40,9 @@ export default function CargoSyncPrototype() {
               <Route path="optimize" element={<OptimizePage />} />
               <Route path="routes" element={<RoutesPage />} />
               <Route path="impact" element={<ImpactPage />} />
+
+              {/* Catch-all for unknown /app/* paths */}
+              <Route path="*" element={<Navigate to="/app/overview" replace />} />
             </Route>
           </Route>
 
