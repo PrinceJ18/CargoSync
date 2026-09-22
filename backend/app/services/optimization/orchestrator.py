@@ -185,8 +185,10 @@ class OptimizationOrchestrator:
                     optimized_successful_order_ids.extend(route.ordered_order_ids)
             
             # 8. MATCH_RETURN_LOADS
-            rl_records = self.db.query(ReturnLoad).filter(ReturnLoad.scenario == request.scenario_id, ReturnLoad.status == 'PENDING').all()
-            opportunities = []
+            rl_query = self.db.query(ReturnLoad).filter(ReturnLoad.scenario == request.scenario_id, ReturnLoad.status == 'PENDING')
+            if operator_scope:
+                rl_query = rl_query.filter(ReturnLoad.operator_id == operator_scope)
+            rl_records = rl_query.all()
             for rl in rl_records:
                 p_shp = to_shape(rl.pickup_location)
                 d_shp = to_shape(rl.delivery_location)
@@ -362,7 +364,22 @@ class OptimizationOrchestrator:
                 self.db.add(route_record)
                 
                 # Add route stops
-                for seq_idx, o_id in enumerate(route.ordered_order_ids):
+                depot = next((d for d in opt_input.depots if d.id == route.depot_id), None)
+                seq_idx = 0
+                
+                if depot:
+                    start_depot_stop = OptimizedRouteStop(
+                        route_id=route_id,
+                        sequence_index=seq_idx,
+                        stop_type="DEPOT_START",
+                        order_id=None,
+                        return_load_id=None,
+                        location=WKTElement(f"POINT({depot.longitude} {depot.latitude})", srid=4326)
+                    )
+                    self.db.add(start_depot_stop)
+                    seq_idx += 1
+
+                for o_id in route.ordered_order_ids:
                     order = order_map.get(o_id)
                     if order:
                         stop_type = "ORDER"
@@ -388,6 +405,18 @@ class OptimizationOrchestrator:
                             location=WKTElement(f"POINT({order.destination_longitude} {order.destination_latitude})", srid=4326)
                         )
                         self.db.add(stop_record)
+                        seq_idx += 1
+                        
+                if depot:
+                    end_depot_stop = OptimizedRouteStop(
+                        route_id=route_id,
+                        sequence_index=seq_idx,
+                        stop_type="DEPOT_END",
+                        order_id=None,
+                        return_load_id=None,
+                        location=WKTElement(f"POINT({depot.longitude} {depot.latitude})", srid=4326)
+                    )
+                    self.db.add(end_depot_stop)
                         
                 # Add return load assignment for this route if any
                 for a in rl_assignments_domain:

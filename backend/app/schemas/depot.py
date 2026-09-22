@@ -3,6 +3,8 @@ from uuid import UUID
 from datetime import datetime
 from typing import Optional
 
+from app.schemas.common import OperatorSummary
+
 class DepotBase(BaseModel):
     name: str = Field(..., min_length=1)
     address: Optional[str] = None
@@ -24,6 +26,7 @@ class DepotUpdate(BaseModel):
 class DepotResponse(DepotBase):
     id: UUID
     operator_id: UUID
+    operator: Optional[OperatorSummary] = None
     created_at: datetime
     updated_at: datetime
 

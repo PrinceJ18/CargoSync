@@ -1,5 +1,6 @@
 import uuid
 from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 from geoalchemy2 import Geography
@@ -35,6 +36,8 @@ class Depot(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
+    operator = relationship("Operator")
+
 class Vehicle(Base):
     __tablename__ = "vehicles"
 
@@ -48,6 +51,9 @@ class Vehicle(Base):
     depot_id = Column(UUID(as_uuid=True), ForeignKey("depots.id", ondelete="SET NULL"), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    operator = relationship("Operator")
+    depot = relationship("Depot")
 
 class Order(Base):
     __tablename__ = "orders"
@@ -67,6 +73,9 @@ class Order(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
 
+    operator = relationship("Operator")
+    origin_depot = relationship("Depot")
+
 class ReturnLoad(Base):
     __tablename__ = "return_loads"
 
@@ -84,6 +93,8 @@ class ReturnLoad(Base):
     delivery_window_end = Column(DateTime(timezone=True), nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now(), nullable=False)
     updated_at = Column(DateTime(timezone=True), server_default=func.now(), onupdate=func.now(), nullable=False)
+
+    operator = relationship("Operator")
 
 class ReturnLoadAssignment(Base):
     __tablename__ = "return_load_assignments"

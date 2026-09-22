@@ -1,7 +1,8 @@
 from fastapi import APIRouter
-from app.api.v1 import health, depots, vehicles, orders, routing, optimization, analytics, return_loads
+from app.api.v1 import health, depots, vehicles, orders, routing, optimization, analytics, return_loads, auth
 
 api_router = APIRouter()
+api_router.include_router(auth.router, prefix="/auth", tags=["auth"])
 api_router.include_router(health.router, prefix="", tags=["health"])
 api_router.include_router(depots.router, prefix="/depots", tags=["depots"])
 api_router.include_router(vehicles.router, prefix="/vehicles", tags=["vehicles"])

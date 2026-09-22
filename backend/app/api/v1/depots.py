@@ -1,11 +1,13 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-from typing import List
+from sqlalchemy.orm import Session, joinedload
+from typing import List, Optional
 from uuid import UUID
+import math
 
 from app.db.database import get_db
 from app.db.models import Depot, Profile
 from app.schemas.depot import DepotCreate, DepotUpdate, DepotResponse
+from app.schemas.common import OperatorSummary, PaginatedResponse
 from app.api.dependencies import get_current_profile
 from geoalchemy2.shape import to_shape
 
@@ -16,6 +18,7 @@ def convert_depot(depot: Depot) -> DepotResponse:
     return DepotResponse(
         id=depot.id,
         operator_id=depot.operator_id,
+        operator=OperatorSummary.model_validate(depot.operator) if getattr(depot, 'operator', None) else None,
         name=depot.name,
         address=depot.address,
         latitude=pt.y,
@@ -55,21 +58,28 @@ def create_depot(
     db.refresh(depot)
     return convert_depot(depot)
 
-@router.get("/", response_model=List[DepotResponse])
+@router.get("/", response_model=PaginatedResponse[DepotResponse])
 def list_depots(
     page: int = 1,
     page_size: int = 20,
     db: Session = Depends(get_db),
     profile: Profile = Depends(get_current_profile)
 ):
-    query = db.query(Depot)
+    query = db.query(Depot).options(joinedload(Depot.operator))
     if profile.role != 'ADMIN':
         if not profile.operator_id:
-            return []
+            raise HTTPException(status_code=403, detail="Operator requires operator_id")
         query = query.filter(Depot.operator_id == profile.operator_id)
         
+    total = query.count()
     depots = query.limit(page_size).offset((page - 1) * page_size).all()
-    return [convert_depot(d) for d in depots]
+    return {
+        "items": [convert_depot(d) for d in depots],
+        "total": total,
+        "page": page,
+        "size": page_size,
+        "pages": math.ceil(total / page_size) if page_size > 0 else 1
+    }
 
 @router.get("/{depot_id}", response_model=DepotResponse)
 def get_depot(
@@ -77,7 +87,7 @@ def get_depot(
     db: Session = Depends(get_db),
     profile: Profile = Depends(get_current_profile)
 ):
-    depot = db.query(Depot).filter(Depot.id == depot_id).first()
+    depot = db.query(Depot).options(joinedload(Depot.operator)).filter(Depot.id == depot_id).first()
     if not depot:
         raise HTTPException(status_code=404, detail="Depot not found")
         

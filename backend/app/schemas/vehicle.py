@@ -3,6 +3,8 @@ from uuid import UUID
 from datetime import datetime
 from typing import Optional
 
+from app.schemas.common import OperatorSummary, DepotSummary
+
 class VehicleBase(BaseModel):
     reference_number: str = Field(..., min_length=1)
     vehicle_type: str = Field(..., min_length=1)
@@ -24,6 +26,8 @@ class VehicleUpdate(BaseModel):
 class VehicleResponse(VehicleBase):
     id: UUID
     operator_id: UUID
+    operator: Optional[OperatorSummary] = None
+    depot: Optional[DepotSummary] = None
     created_at: datetime
     updated_at: datetime
 

@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
 from uuid import UUID
+import math
 
 from app.db.database import get_db
 from app.db.models import Vehicle, Profile
 from app.schemas.vehicle import VehicleCreate, VehicleUpdate, VehicleResponse
+from app.schemas.common import PaginatedResponse
 from app.api.dependencies import get_current_profile
 
 router = APIRouter()
@@ -47,7 +49,7 @@ def create_vehicle(
         
     return vehicle
 
-@router.get("/", response_model=List[VehicleResponse])
+@router.get("/", response_model=PaginatedResponse[VehicleResponse])
 def list_vehicles(
     page: int = 1,
     page_size: int = 20,
@@ -55,17 +57,27 @@ def list_vehicles(
     db: Session = Depends(get_db),
     profile: Profile = Depends(get_current_profile)
 ):
-    query = db.query(Vehicle)
+    query = db.query(Vehicle).options(
+        joinedload(Vehicle.operator),
+        joinedload(Vehicle.depot)
+    )
     if profile.role != 'ADMIN':
         if not profile.operator_id:
-            return []
+            raise HTTPException(status_code=403, detail="Operator requires operator_id")
         query = query.filter(Vehicle.operator_id == profile.operator_id)
         
     if status:
         query = query.filter(Vehicle.status == status)
         
+    total = query.count()
     vehicles = query.limit(page_size).offset((page - 1) * page_size).all()
-    return vehicles
+    return {
+        "items": vehicles,
+        "total": total,
+        "page": page,
+        "size": page_size,
+        "pages": math.ceil(total / page_size) if page_size > 0 else 1
+    }
 
 @router.get("/{vehicle_id}", response_model=VehicleResponse)
 def get_vehicle(
@@ -73,7 +85,10 @@ def get_vehicle(
     db: Session = Depends(get_db),
     profile: Profile = Depends(get_current_profile)
 ):
-    vehicle = db.query(Vehicle).filter(Vehicle.id == vehicle_id).first()
+    vehicle = db.query(Vehicle).options(
+        joinedload(Vehicle.operator),
+        joinedload(Vehicle.depot)
+    ).filter(Vehicle.id == vehicle_id).first()
     if not vehicle:
         raise HTTPException(status_code=404, detail="Vehicle not found")
         

@@ -209,7 +209,7 @@ class ORToolsOptimizer:
         # to be strictly enforced as SameVehicle in the routing model.
         
         # Disjunctions to allow dropping, avoiding total solver crash
-        DROP_PENALTY = 10000000
+        DROP_PENALTY = 10000000000
         for node in matrix.nodes:
             if node.node_type == "ORDER" and node.order_id in routed_order_ids:
                 idx = node_id_to_index[node.node_id]
@@ -324,7 +324,10 @@ class ORToolsOptimizer:
         if not routes:
             status = "INFEASIBLE"
             message = "No valid routes could be formed (all orders dropped)."
-        elif ortools_status == 6 and not unassigned_order_ids:  # ROUTING_OPTIMAL
+        elif unassigned_order_ids:
+            status = "INFEASIBLE"
+            message = "One or more orders could not be assigned due to capacity or constraint limits."
+        elif ortools_status == 6:  # ROUTING_OPTIMAL
             status = "OPTIMAL"
         else:
             status = "FEASIBLE"

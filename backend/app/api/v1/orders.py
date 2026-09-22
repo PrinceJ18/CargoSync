@@ -1,12 +1,14 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy.exc import IntegrityError
 from typing import List, Optional
 from uuid import UUID
+import math
 
 from app.db.database import get_db
 from app.db.models import Order, Profile
 from app.schemas.order import OrderCreate, OrderUpdate, OrderResponse
+from app.schemas.common import PaginatedResponse, OperatorSummary, DepotSummary
 from app.api.dependencies import get_current_profile
 from geoalchemy2.shape import to_shape
 
@@ -17,6 +19,8 @@ def convert_order(order: Order) -> OrderResponse:
     return OrderResponse(
         id=order.id,
         operator_id=order.operator_id,
+        operator=OperatorSummary.model_validate(order.operator) if getattr(order, 'operator', None) else None,
+        origin_depot=DepotSummary.model_validate(order.origin_depot) if getattr(order, 'origin_depot', None) else None,
         scenario=order.scenario,
         reference_number=order.reference_number,
         origin_depot_id=order.origin_depot_id,
@@ -72,7 +76,7 @@ def create_order(
         
     return convert_order(order)
 
-@router.get("/", response_model=List[OrderResponse])
+@router.get("/", response_model=PaginatedResponse[OrderResponse])
 def list_orders(
     page: int = 1,
     page_size: int = 20,
@@ -81,10 +85,13 @@ def list_orders(
     db: Session = Depends(get_db),
     profile: Profile = Depends(get_current_profile)
 ):
-    query = db.query(Order)
+    query = db.query(Order).options(
+        joinedload(Order.operator),
+        joinedload(Order.origin_depot)
+    )
     if profile.role != 'ADMIN':
         if not profile.operator_id:
-            return []
+            raise HTTPException(status_code=403, detail="Operator requires operator_id")
         query = query.filter(Order.operator_id == profile.operator_id)
         
     if status:
@@ -92,8 +99,15 @@ def list_orders(
     if scenario:
         query = query.filter(Order.scenario == scenario)
         
+    total = query.count()
     orders = query.limit(page_size).offset((page - 1) * page_size).all()
-    return [convert_order(o) for o in orders]
+    return {
+        "items": [convert_order(o) for o in orders],
+        "total": total,
+        "page": page,
+        "size": page_size,
+        "pages": math.ceil(total / page_size) if page_size > 0 else 1
+    }
 
 @router.get("/{order_id}", response_model=OrderResponse)
 def get_order(
@@ -101,7 +115,10 @@ def get_order(
     db: Session = Depends(get_db),
     profile: Profile = Depends(get_current_profile)
 ):
-    order = db.query(Order).filter(Order.id == order_id).first()
+    order = db.query(Order).options(
+        joinedload(Order.operator),
+        joinedload(Order.origin_depot)
+    ).filter(Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
         
