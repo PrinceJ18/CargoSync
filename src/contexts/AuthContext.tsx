@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useState } from "react";
 import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase/client";
 import { request } from "../services/apiClient";
+import type { ApiError } from "../types/api";
 
 export interface Profile {
   id: string;
@@ -16,6 +17,8 @@ interface AuthContextState {
   user: User | null;
   profile: Profile | null;
   isLoading: boolean;
+  authError: ApiError | null;
+  retryAuth: () => void;
 }
 
 const AuthContext = createContext<AuthContextState | undefined>(undefined);
@@ -25,14 +28,32 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<User | null>(null);
   const [profile, setProfile] = useState<Profile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [authError, setAuthError] = useState<ApiError | null>(null);
 
   const fetchProfile = async () => {
+    setAuthError(null);
     try {
-      const data = await request<Profile>("/api/v1/auth/me");
+      const data = await request<Profile>("/auth/me");
       setProfile(data);
     } catch (err) {
       console.error("Unexpected error fetching profile:", err);
-      setProfile(null);
+      const apiErr = err as ApiError;
+      if (apiErr.code === "UNAUTHENTICATED") {
+        await supabase.auth.signOut();
+        setProfile(null);
+      } else {
+        setAuthError(apiErr);
+      }
+    }
+  };
+
+  const retryAuth = () => {
+    setIsLoading(true);
+    setAuthError(null);
+    if (session?.user) {
+      fetchProfile().finally(() => setIsLoading(false));
+    } else {
+      setIsLoading(false);
     }
   };
 
@@ -78,7 +99,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, []);
 
   return (
-    <AuthContext.Provider value={{ session, user, profile, isLoading }}>
+    <AuthContext.Provider value={{ session, user, profile, isLoading, authError, retryAuth }}>
       {children}
     </AuthContext.Provider>
   );

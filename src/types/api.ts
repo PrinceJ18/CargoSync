@@ -5,28 +5,59 @@
 
 // --- Domain Models ---
 
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  size: number;
+  pages: number;
+}
+
+export interface OperatorSummary {
+  id: string;
+  name: string;
+}
+
+export interface DepotSummary {
+  id: string;
+  name: string;
+}
+
 export interface Order {
   id: string;
   reference_number?: string;
   operator_id: string;
+  operator?: OperatorSummary;
   origin_depot_id?: string;
+  origin_depot?: DepotSummary;
   destination_latitude: number;
   destination_longitude: number;
   weight_kg: number;
   status: "PENDING" | "SCHEDULED" | "COMPLETED" | "FAILED";
+  scenario?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Vehicle {
   id: string;
   reference_number?: string;
+  vehicle_type?: string;
   operator_id: string;
+  operator?: OperatorSummary;
+  depot_id?: string;
+  depot?: DepotSummary;
   capacity_kg: number;
   status: "AVAILABLE" | "IN_TRANSIT" | "MAINTENANCE";
+  scenario?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 export interface Depot {
   id: string;
   operator_id: string;
+  operator?: OperatorSummary;
   name: string;
   latitude: number;
   longitude: number;
@@ -36,18 +67,22 @@ export interface ReturnLoad {
   id: string;
   reference_number?: string;
   operator_id: string;
-  pickup_latitude: number;
-  pickup_longitude: number;
-  delivery_latitude: number;
-  delivery_longitude: number;
+  operator?: OperatorSummary;
+  pickup_latitude?: number;
+  pickup_longitude?: number;
+  delivery_latitude?: number;
+  delivery_longitude?: number;
+  pickup_location?: [number, number];
+  delivery_location?: [number, number];
   weight_kg: number;
+  status?: string;
 }
 
 // --- API Request/Response Contracts ---
 
 // /api/optimization/run
 export interface OptimizationRunRequest {
-  scenario_id: string; // e.g., "DEMO"
+  scenario: string; // e.g., "DEMO"
   config?: Record<string, unknown>;
 }
 
@@ -139,9 +174,18 @@ export interface AnalyticsMetricsResponse {
 
 // --- Standardized UI Error Representation ---
 
+export type ApiErrorCode = 
+  | "NETWORK_ERROR"
+  | "UNAUTHENTICATED"
+  | "UNAUTHORIZED"
+  | "NOT_FOUND"
+  | "VALIDATION_ERROR"
+  | "SERVER_ERROR"
+  | "UNKNOWN_ERROR";
+
 export interface ApiError {
   message: string;
   status?: number;
-  code?: string;
+  code: ApiErrorCode;
   details?: unknown;
 }

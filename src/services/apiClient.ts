@@ -1,6 +1,24 @@
 import { env } from "../config/env";
-import type { ApiError } from "../types/api";
+import type { ApiError, ApiErrorCode } from "../types/api";
 import { supabase } from "../lib/supabase/client";
+
+function mapStatusCodeToEnum(status: number): ApiErrorCode {
+  if (status === 401) return "UNAUTHENTICATED";
+  if (status === 403) return "UNAUTHORIZED";
+  if (status === 404) return "NOT_FOUND";
+  if (status === 422 || status === 400) return "VALIDATION_ERROR";
+  if (status >= 500) return "SERVER_ERROR";
+  return "UNKNOWN_ERROR";
+}
+
+function getErrorMessage(status: number, statusText: string): string {
+  if (status === 401) return "Your session has expired. Please sign in again.";
+  if (status === 403) return "You do not have permission to access this data.";
+  if (status === 404) return "The requested resource could not be found.";
+  if (status === 422 || status === 400) return "The request could not be processed. Please check the provided data.";
+  if (status >= 500) return "CargoSync services are temporarily unavailable. Please try again.";
+  return statusText || "An unexpected error occurred.";
+}
 
 /**
  * Normalizes HTTP fetch responses into a predictable ApiError structure.
@@ -15,8 +33,9 @@ async function handleResponse<T>(response: Response): Promise<T> {
     }
 
     const error: ApiError = {
-      message: response.statusText || "An error occurred during the API request.",
+      message: getErrorMessage(response.status, response.statusText),
       status: response.status,
+      code: mapStatusCodeToEnum(response.status),
       details: errorDetails,
     };
     throw error;
@@ -57,13 +76,15 @@ export async function request<T>(endpoint: string, options: RequestInit = {}): P
     return await handleResponse<T>(response);
   } catch (error) {
     // Normalize network/unknown errors if they aren't already ApiErrors
-    if ((error as ApiError).status !== undefined) {
+    if ((error as ApiError).status !== undefined || (error as ApiError).code !== undefined) {
       throw error;
     }
     
+    const isNetwork = error instanceof Error && (error.message.includes("fetch") || error.message.includes("network") || error.message.includes("Failed to fetch"));
+
     const networkError: ApiError = {
-      message: error instanceof Error ? error.message : "Network or unknown error",
-      code: "NETWORK_ERROR",
+      message: isNetwork ? "Unable to connect to CargoSync services. Check your connection and try again." : (error instanceof Error ? error.message : "An unexpected error occurred."),
+      code: isNetwork ? "NETWORK_ERROR" : "UNKNOWN_ERROR",
     };
     throw networkError;
   }
@@ -86,18 +107,46 @@ export const apiClient = {
     request<T>(endpoint, { ...options, method: "DELETE" }),
 };
 
-import type { Order, Vehicle, ReturnLoad, AnalyticsMetricsResponse, OptimizationRunRequest, OptimizationRunResponse, Depot } from "../types/api";
+import type { Order, Vehicle, ReturnLoad, AnalyticsMetricsResponse, OptimizationRunRequest, OptimizationRunResponse, Depot, PaginatedResponse } from "../types/api";
 
 export const api = {
   orders: {
-    list: () => apiClient.get<Order[]>("/orders"),
+    list: (params?: { page?: number; page_size?: number; status?: string }) => {
+      const p = new URLSearchParams();
+      if (params?.page) p.set("page", params.page.toString());
+      if (params?.page_size) p.set("page_size", params.page_size.toString());
+      if (params?.status) p.set("status", params.status);
+      const qs = p.toString();
+      return apiClient.get<PaginatedResponse<Order>>(`/orders${qs ? `?${qs}` : ""}`);
+    },
   },
   fleet: {
-    listVehicles: () => apiClient.get<Vehicle[]>("/vehicles"),
-    listDepots: () => apiClient.get<Depot[]>("/depots"),
+    listVehicles: (params?: { page?: number; page_size?: number; status?: string }) => {
+      const p = new URLSearchParams();
+      if (params?.page) p.set("page", params.page.toString());
+      if (params?.page_size) p.set("page_size", params.page_size.toString());
+      if (params?.status) p.set("status", params.status);
+      const qs = p.toString();
+      return apiClient.get<PaginatedResponse<Vehicle>>(`/vehicles${qs ? `?${qs}` : ""}`);
+    },
+    listDepots: (params?: { page?: number; page_size?: number; status?: string }) => {
+      const p = new URLSearchParams();
+      if (params?.page) p.set("page", params.page.toString());
+      if (params?.page_size) p.set("page_size", params.page_size.toString());
+      if (params?.status) p.set("status", params.status);
+      const qs = p.toString();
+      return apiClient.get<PaginatedResponse<Depot>>(`/depots${qs ? `?${qs}` : ""}`);
+    },
   },
   returnLoads: {
-    list: () => apiClient.get<ReturnLoad[]>("/return-loads"),
+    list: (params?: { page?: number; page_size?: number; status?: string }) => {
+      const p = new URLSearchParams();
+      if (params?.page) p.set("page", params.page.toString());
+      if (params?.page_size) p.set("page_size", params.page_size.toString());
+      if (params?.status) p.set("status", params.status);
+      const qs = p.toString();
+      return apiClient.get<PaginatedResponse<ReturnLoad>>(`/return-loads${qs ? `?${qs}` : ""}`);
+    },
   },
   optimization: {
     run: (data: OptimizationRunRequest) => apiClient.post<OptimizationRunResponse>("/optimization/runs", data),
