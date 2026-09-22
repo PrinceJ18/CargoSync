@@ -236,44 +236,41 @@ class TestWrongAudience:
         assert exc.value.status_code == 401
 
 
-# ---------------------------------------------------------------------------
-# Test G — valid user resolves to ADMIN profile
-# ---------------------------------------------------------------------------
+@pytest.fixture
+def mock_db():
+    from app.main import app
+    from app.db.database import get_db
+    db = MagicMock()
+    app.dependency_overrides[get_db] = lambda: db
+    yield db
+    app.dependency_overrides.pop(get_db, None)
 
 class TestProfileResolution:
-    def test_admin_profile_resolved(self, _mock_credentials):
+    def test_admin_profile_resolved(self, _mock_credentials, mock_db):
         """
         Valid token sub=87e27dda... resolves to ADMIN via get_current_profile.
-        Requires the real database profile row to exist.
         """
         from app.core.security import get_current_user
         from app.api.dependencies import get_current_profile
-        from app.db.database import SessionLocal
+        from app.db.models import Profile
 
         token = _make_token(sub="87e27dda-bcdf-4d2a-8f88-56cc22b049f5")
         creds = _mock_credentials(token)
         payload = get_current_user(creds)
 
-        db = SessionLocal()
-        try:
-            profile = get_current_profile(payload, db)
-            assert profile.role == "ADMIN"
-            assert profile.operator_id is None
-        except HTTPException as e:
-            # Profile may not exist in test DB — this tests the flow, not the data
-            if e.status_code == 403 and "Profile not found" in e.detail:
-                pytest.skip("Profile row not in test database")
-            raise
-        finally:
-            db.close()
+        mock_profile = Profile(id=uuid4(), role="ADMIN", operator_id=None)
+        mock_db.query().filter().first.return_value = mock_profile
 
+        profile = get_current_profile(payload, mock_db)
+        assert profile.role == "ADMIN"
+        assert profile.operator_id is None
 
 # ---------------------------------------------------------------------------
 # Test H — unauthenticated (missing Authorization)
 # ---------------------------------------------------------------------------
 
 class TestUnauthenticated:
-    def test_missing_token_rejected(self):
+    def test_missing_token_rejected(self, mock_db):
         """HTTPBearer raises 403 automatically for missing Authorization."""
         from fastapi.testclient import TestClient
         from app.main import app

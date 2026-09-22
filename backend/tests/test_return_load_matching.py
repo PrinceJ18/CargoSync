@@ -20,12 +20,17 @@ from app.services.routing.routing_service import RoutingService
 class MockOSRMClient:
     async def get_table(self, coords: List[Coordinate]):
         dist = 0
-        if coords[1].latitude == 10.0:
-            dists = [[0, 6000, 0, 0], [6000, 0, 0, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
-        elif coords[1].latitude == 20.0:
-            dists = [[0, 4000, 0, 0], [0, 0, 30000, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+        if abs(coords[2].latitude - 10.0) < 0.1:
+            # Proximity rejection: dists[0][2] > 5000
+            # 0=final, 1=depot, 2=pickup, 3=delivery
+            dists = [[0, 0, 6000, 0], [0, 0, 0, 0], [6000, 0, 0, 0], [0, 0, 0, 0]]
+        elif abs(coords[2].latitude - 20.0) < 0.1:
+            # Detour rejection: dist_new - dist_orig > 25000
+            # dist_orig = dists[0][1] = 4000
+            # dist_new = dists[0][2] (0) + dists[2][3] (30000) + dists[3][1] (0) = 30000
+            dists = [[0, 4000, 0, 0], [4000, 0, 0, 0], [0, 0, 0, 30000], [0, 0, 0, 0]]
         else:
-            dists = [[0, 3000, 0, 1000], [0, 0, 3000, 0], [0, 0, 0, 0], [0, 0, 0, 0]]
+            dists = [[0, 3000, 3000, 1000], [0, 0, 0, 0], [0, 0, 0, 1000], [0, 1000, 0, 0]]
             
         return {"distances": dists, "durations": dists}
 

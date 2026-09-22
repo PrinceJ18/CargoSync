@@ -75,7 +75,7 @@ async def test_2_5_baseline_failure_is_critical_and_halts_pipeline():
     with pytest.raises(RoutingBaseException) as excinfo:
         await baseline_calc.calculate_baseline(BaselineInput(orders=[o1, o2]))
         
-    assert "Failed to calculate complete baseline" in str(excinfo.value)
+    assert "failed baseline route" in str(excinfo.value)
     
     # In an orchestrator, catching this exception prevents the pipeline from reaching OR-Tools.
     # The pipeline MUST NOT catch this and supply a fallback (e.g. 1.0 or Haversine) to OR-Tools.

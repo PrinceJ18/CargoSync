@@ -153,7 +153,16 @@ def test_api_multi_stop_success(mock_get_route, auth_operator):
     assert data["provider"] == "osrm"
 
 def test_api_unauthenticated():
-    # Because we removed the module level override, it inherently fails without auth_operator
+    # Clear any global dependency overrides leaking from other tests
+    app.dependency_overrides.clear()
+    
+    # Mock DB dependency for the unauthenticated test to avoid 500
+    from app.db.database import get_db
+    def mock_get_db():
+        yield MagicMock()
+        
+    app.dependency_overrides[get_db] = mock_get_db
+    
     response = client.post("/api/v1/routing/route", json={
         "origin": {"latitude": 22.1, "longitude": 75.1},
         "destination": {"latitude": 22.3, "longitude": 75.3}

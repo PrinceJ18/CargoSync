@@ -55,6 +55,7 @@ def test_operator_id_spoofing(mock_db, auth_op_a):
         "reference_number": "VEH-SPOOF",
         "vehicle_type": "TRUCK",
         "capacity_kg": 5000,
+        "scenario": "LIVE",
         "operator_id": str(MOCK_OPERATOR_B_ID) # Attempt spoofing
     }
     
@@ -73,7 +74,7 @@ def test_operator_id_spoofing(mock_db, auth_op_a):
 
 def test_operator_cannot_get_other_operator_vehicle(mock_db, auth_op_a):
     mock_vehicle = Vehicle(id=uuid4(), operator_id=MOCK_OPERATOR_B_ID, reference_number="VEH-B", vehicle_type="VAN", capacity_kg=1000)
-    mock_db.query().filter().first.return_value = mock_vehicle
+    mock_db.query.return_value.options.return_value.filter.return_value.first.return_value = mock_vehicle
     
     response = client.get(f"/api/v1/vehicles/{mock_vehicle.id}")
     assert response.status_code == 403
@@ -105,7 +106,7 @@ def test_admin_can_get_any_operator_vehicle(mock_db, auth_admin):
         created_at=datetime.now(),
         updated_at=datetime.now()
     )
-    mock_db.query().filter().first.return_value = mock_vehicle
+    mock_db.query.return_value.options.return_value.filter.return_value.first.return_value = mock_vehicle
     
     response = client.get(f"/api/v1/vehicles/{mock_vehicle.id}")
     assert response.status_code == 200
