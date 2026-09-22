@@ -57,6 +57,14 @@ export function FleetPage() {
     fetchVehicles(page, statusFilter, scenario);
   }, [page, statusFilter, scenario, fetchVehicles]);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelected(null);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
   // Client-side search within currently loaded items
   const displayed = data?.items.filter((v) => {
     if (!q) return true;

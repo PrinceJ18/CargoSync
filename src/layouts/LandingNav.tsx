@@ -30,8 +30,8 @@ export function LandingNav({ scrolled }: LandingNavProps) {
         ))}
       </div>
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <span onClick={() => navigate("/login")} style={{ color: "rgba(250,246,239,0.7)", fontSize: 13, cursor: "pointer" }}>Business Portal</span>
-        <span onClick={() => navigate("/login")} style={{ color: "rgba(250,246,239,0.7)", fontSize: 13, cursor: "pointer" }}>Admin Console</span>
+        <Link to="/login" style={{ color: "rgba(250,246,239,0.7)", fontSize: 13, textDecoration: "none" }}>Business Portal</Link>
+        <Link to="/login" style={{ color: "rgba(250,246,239,0.7)", fontSize: 13, textDecoration: "none" }}>Admin Console</Link>
         <button onClick={() => navigate("/login")} style={{
           background: C.coral, color: C.ivory, border: "none", borderRadius: 999,
           padding: "9px 18px", fontSize: 13.5, fontWeight: 600, cursor: "pointer",

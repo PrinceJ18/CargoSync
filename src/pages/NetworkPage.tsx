@@ -37,6 +37,14 @@ export function NetworkPage() {
     }
   }, [showDepots, showOrders, showReturns, selected]);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelected(null);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
   const loadData = () => {
     setFetchStatus("loading");
     setError(null);

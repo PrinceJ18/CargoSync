@@ -57,6 +57,14 @@ export function OrdersPage() {
     fetchOrders(page, statusFilter, scenario);
   }, [page, statusFilter, scenario, fetchOrders]);
 
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelected(null);
+    };
+    document.addEventListener("keydown", handleEscape);
+    return () => document.removeEventListener("keydown", handleEscape);
+  }, []);
+
   // Client-side search within currently loaded items
   const displayed = data?.items.filter((o) => {
     if (!q) return true;
