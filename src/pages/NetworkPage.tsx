@@ -4,10 +4,12 @@ import { X, MapPin, Package, RefreshCw, Loader2, AlertCircle } from "lucide-reac
 import { C } from "../data/prototype/designTokens";
 import { useAuth } from "../contexts/AuthContext";
 import type { Order, ReturnLoad, Depot } from "../types/api";
+import { useMobile } from "../hooks/useMobile";
 
 export function NetworkPage() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'ADMIN';
+  const isMobile = useMobile();
 
   const [orders, setOrders] = useState<Order[]>([]);
   const [returnLoads, setReturnLoads] = useState<ReturnLoad[]>([]);
@@ -122,7 +124,7 @@ export function NetworkPage() {
       </div>
       
       <div style={{ display: "flex", gap: 20, marginBottom: 16 }}>
-        <fieldset style={{ display: "flex", gap: 14, background: C.ivory, padding: "8px 16px", borderRadius: 6, border: `1px solid ${C.stone}`, margin: 0 }}>
+        <fieldset style={{ display: "flex", flexWrap: "wrap", gap: 14, background: C.ivory, padding: "8px 16px", borderRadius: 6, border: `1px solid ${C.stone}`, margin: 0 }}>
           <legend className="sr-only" style={{ display: "none" }}>Map Filters</legend>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer", fontWeight: 500 }}>
             <input type="checkbox" checked={showDepots} onChange={(e) => setShowDepots(e.target.checked)} />
@@ -149,7 +151,7 @@ export function NetworkPage() {
         </div>
       )}
       
-      <div style={{ display: "grid", gridTemplateColumns: selected ? "1fr 340px" : "1fr", gap: 20, flex: 1, minHeight: 0 }}>
+      <div style={{ display: isMobile ? "flex" : "grid", flexDirection: "column", gridTemplateColumns: selected && !isMobile ? "1fr 340px" : "1fr", gap: 20, flex: 1, minHeight: 0 }}>
         <div style={{ border: `1px solid ${C.stone}`, borderRadius: 6, overflow: "hidden", background: C.cream, position: "relative", zIndex: 1, height: "100%", minHeight: 500, display: "flex", flexDirection: "column" }}>
         
         {fetchStatus === "loading" && (!orders.length && !returnLoads.length && !depots.length) && (
@@ -217,7 +219,10 @@ export function NetworkPage() {
         </div>
         
         {selected && (
-          <div style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: 22, overflowY: "auto" }}>
+          <div style={isMobile 
+            ? { position: "fixed", inset: 0, zIndex: 1000, background: C.ivory, padding: 26, overflowY: "auto" }
+            : { background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: 22, overflowY: "auto" }
+          }>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 {selected.type === "depot" && <MapPin size={18} color={C.navy} aria-hidden="true" />}

@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { CheckCircle2, RefreshCw, AlertTriangle, ArrowRight, Route as RouteIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { C, mono } from "../data/prototype/designTokens";
+import { useMobile } from "../hooks/useMobile";
 import { Panel } from "../components/shared/Panel";
 import { ResultComparison } from "../features/process/ResultComparison";
 import type { OptimizationRunResponse } from "../types/api";
@@ -13,6 +14,7 @@ const PIPELINE_STAGES = [
 
 export function OptimizePage() {
   const navigate = useNavigate();
+  const isMobile = useMobile();
   const [running, setRunning] = useState(false);
   const [result, setResult] = useState<OptimizationRunResponse | null>(null);
   const [scenario, setScenario] = useState("DEMO");
@@ -71,10 +73,10 @@ export function OptimizePage() {
   };
 
   return (
-    <div style={{ padding: 26 }}>
+    <div style={{ padding: isMobile ? 16 : 26 }}>
       <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Optimize</div>
       <div style={{ fontSize: 13, color: C.slate, marginBottom: 20 }}>Build a scenario and run the constrained optimization engine.</div>
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
+      <div style={{ display: isMobile ? "flex" : "grid", flexDirection: "column", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20 }}>
         <Panel title="Scenario Setup">
           <div style={{ marginBottom: 16 }}>
             <label htmlFor="scenario-select" style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Select Dataset:</label>

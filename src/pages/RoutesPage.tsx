@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 import { Truck, Settings, Play, Pause, RotateCcw, AlertCircle, Loader2, RefreshCw } from "lucide-react";
+import { useMobile } from "../hooks/useMobile";
 import { C, mono } from "../data/prototype/designTokens";
 import { Panel } from "../components/shared/Panel";
 import type { OptimizationRunResponse } from "../types/api";
@@ -109,6 +110,7 @@ type PlayState = "idle" | "playing" | "paused" | "completed";
 
 export function RoutesPage() {
   const navigate = useNavigate();
+  const isMobile = useMobile();
   const [scenario, setScenario] = useState("DEMO");
   const [runData, setRunData] = useState<OptimizationRunResponse | null>(null);
   const [vehicles, setVehicles] = useState<Record<string, any>>({});
@@ -407,7 +409,7 @@ export function RoutesPage() {
         </div>
       )}
 
-      <div style={{ display: "grid", gridTemplateColumns: "240px 1fr 300px", gap: 20, alignItems: "start" }}>
+      <div style={{ display: isMobile ? "flex" : "grid", flexDirection: "column", gridTemplateColumns: isMobile ? "1fr" : "240px 1fr 300px", gap: 20, alignItems: "start" }}>
 
         {/* ── LEFT: Route List ── */}
         <Panel title={`Routes (${runData.routes.length})`}>

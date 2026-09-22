@@ -6,11 +6,13 @@ import { Panel } from "../components/shared/Panel";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { NetworkMap } from "../features/map/NetworkMap";
 import { useAuth } from "../contexts/AuthContext";
+import { useMobile } from "../hooks/useMobile";
 import type { OptimizationRunResponse, AnalyticsMetricsResponse } from "../types/api";
 
 export function DashboardPage() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'ADMIN';
+  const isMobile = useMobile();
 
   // Entity totals from PaginatedResponse
   const [totals, setTotals] = useState<{ orders: number, fleet: number, depots: number, returnLoads: number } | null>(null);
@@ -93,9 +95,9 @@ export function DashboardPage() {
   }
 
   return (
-    <div style={{ padding: 26, display: "grid", gridTemplateColumns: "1.6fr 1fr", gap: 20 }}>
+    <div style={{ padding: isMobile ? 16 : 26, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.6fr 1fr", gap: 20 }}>
       <div>
-        <div style={{ marginBottom: 16, display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <div style={{ marginBottom: 16, display: "flex", flexDirection: isMobile ? "column" : "row", gap: 12, justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "baseline" }}>
           <div>
             <div style={{ fontSize: 20, fontWeight: 700 }}>{isAdmin ? "Network Overview" : "My Operations"}</div>
             <div style={{ fontSize: 13, color: C.slate }}>{isAdmin ? "Cargo movement across the full Indore network." : `${profile?.operator_name || "Operator"} · Indore network.`}</div>
@@ -123,7 +125,7 @@ export function DashboardPage() {
         </div>
 
         {/* Entity KPI Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginTop: 16, opacity: fetchStatus === "loading" ? 0.6 : 1 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(5, 1fr)", gap: 12, marginTop: 16, opacity: fetchStatus === "loading" ? 0.6 : 1 }}>
           <MetricCard icon={<Package size={14} color={C.slate} />} label="Orders" value={totals ? totals.orders.toString() : "\u2014"} sub={totals ? `${totals.depots} depots` : "\u2014"} />
           <MetricCard icon={<Truck size={14} color={C.slate} />} label="Vehicles" value={totals ? totals.fleet.toString() : "\u2014"} sub="active" />
           <MetricCard icon={<Gauge size={14} color={C.slate} />} label="Avg Utilization" value={metrics ? `${metrics.utilization_pct}%` : "\u2014"} />
@@ -133,7 +135,7 @@ export function DashboardPage() {
 
         {/* Optimization Savings — only if real data exists */}
         {hasOptimization && optMetrics?.savings && (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginTop: 12 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginTop: 12 }}>
             <MiniStat icon={<Route size={13} color={C.navy} />} label="Routes" value={routeCount.toString()} />
             <MiniStat icon={<TrendingDown size={13} color={C.coral} />} label="Distance Saved" value={distSavedKm !== null ? `${distSavedKm} km` : "\u2014"} />
             <MiniStat icon={<IndianRupee size={13} color={C.emerald} />} label="Cost Saved" value={costSaved !== null ? `\u20B9${Math.round(costSaved).toLocaleString("en-IN")}` : "\u2014"} />
