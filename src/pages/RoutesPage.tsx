@@ -273,6 +273,7 @@ export function RoutesPage() {
         
         <div style={{ marginBottom: 16, width: 240 }}>
           <select 
+            aria-label="Select Scenario"
             value={scenario} 
             onChange={(e) => setScenario(e.target.value)}
             disabled
@@ -283,8 +284,8 @@ export function RoutesPage() {
           </select>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1, color: C.slate, gap: 10 }}>
-          <Loader2 size={18} className="spin" /> Loading route data...
+        <div role="status" aria-label="Loading route data" style={{ display: "flex", alignItems: "center", justifyContent: "center", flex: 1, color: C.slate, gap: 10 }}>
+          <Loader2 size={18} className="spin" aria-hidden="true" /> Loading route data...
         </div>
       </div>
     );
@@ -310,6 +311,7 @@ export function RoutesPage() {
         
         <div style={{ marginBottom: 16, width: 240 }}>
           <select 
+            aria-label="Select Scenario"
             value={scenario} 
             onChange={(e) => setScenario(e.target.value)}
             style={{ width: "100%", padding: "8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 13 }}
@@ -340,6 +342,7 @@ export function RoutesPage() {
         
         <div style={{ marginBottom: 16, width: 240 }}>
           <select 
+            aria-label="Select Scenario"
             value={scenario} 
             onChange={(e) => setScenario(e.target.value)}
             style={{ width: "100%", padding: "8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 13 }}
@@ -385,6 +388,7 @@ export function RoutesPage() {
         <div style={{ fontSize: 20, fontWeight: 700 }}>Route Intelligence</div>
         <div style={{ width: 240 }}>
           <select 
+            aria-label="Select Scenario"
             value={scenario} 
             onChange={(e) => setScenario(e.target.value)}
             style={{ width: "100%", padding: "6px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 12 }}
@@ -411,11 +415,19 @@ export function RoutesPage() {
             {runData.routes.map((r, i) => {
               const isSel = selectedIndex === i;
               return (
-                <div key={i} onClick={() => setSelectedIndex(i)} style={{
-                  padding: 10, border: `1.5px solid ${isSel ? C.coral : C.stone}`,
-                  borderRadius: 6, background: isSel ? C.cream : C.ivory,
-                  cursor: "pointer", transition: "border-color 0.15s"
-                }}>
+                <div 
+                  key={i} 
+                  role="button"
+                  tabIndex={0}
+                  aria-selected={isSel}
+                  onClick={() => setSelectedIndex(i)} 
+                  onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedIndex(i); } }}
+                  style={{
+                    padding: 10, border: `1.5px solid ${isSel ? C.coral : C.stone}`,
+                    borderRadius: 6, background: isSel ? C.cream : C.ivory,
+                    cursor: "pointer", transition: "border-color 0.15s"
+                  }}
+                >
                   <div style={{ fontWeight: 600, fontSize: 12.5, color: isSel ? C.coral : C.ink }}>Route {i + 1}</div>
                   <div style={{ fontSize: 10.5, fontFamily: mono, color: C.slate, marginTop: 3 }}>
                     {vehicles[r.vehicle_id]?.reference_number || r.vehicle_id.slice(0, 8)}
@@ -491,15 +503,15 @@ export function RoutesPage() {
             <div style={{ fontSize: 10, fontFamily: mono, color: C.slate, textTransform: "uppercase", letterSpacing: 1 }}>Simulation</div>
             <div style={{ display: "flex", gap: 4 }}>
               {playState === "playing" ? (
-                <button onClick={handlePause} style={controlBtn}><Pause size={13} /></button>
+                <button aria-label="Pause" onClick={handlePause} style={controlBtn}><Pause size={13} aria-hidden="true" /></button>
               ) : (
-                <button onClick={handlePlay} disabled={!hasGeometry} style={{ ...controlBtn, opacity: hasGeometry ? 1 : 0.4 }}><Play size={13} /></button>
+                <button aria-label="Play" onClick={handlePlay} disabled={!hasGeometry} style={{ ...controlBtn, opacity: hasGeometry ? 1 : 0.4 }}><Play size={13} aria-hidden="true" /></button>
               )}
-              <button onClick={handleReset} style={controlBtn}><RotateCcw size={13} /></button>
+              <button aria-label="Reset simulation" onClick={handleReset} style={controlBtn}><RotateCcw size={13} aria-hidden="true" /></button>
             </div>
             <div style={{ display: "flex", gap: 3 }}>
               {[1, 2, 4].map(s => (
-                <button key={s} onClick={() => setSpeed(s)} style={{
+                <button aria-label={`Speed ${s}x`} aria-pressed={speed === s} key={s} onClick={() => setSpeed(s)} style={{
                   ...controlBtn, background: speed === s ? C.ink : C.cream, color: speed === s ? C.ivory : C.ink,
                   fontSize: 10.5, padding: "3px 7px", minWidth: 0,
                 }}>{s}×</button>

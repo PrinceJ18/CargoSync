@@ -26,6 +26,8 @@ export function DashboardPage() {
   const [pageError, setPageError] = useState<string | null>(null);
   const [optError, setOptError] = useState(false);
 
+  const [scenario, setScenario] = useState("DEMO");
+
   const fetchDashboardData = () => {
     setFetchStatus("loading");
     setPageError(null);
@@ -33,11 +35,11 @@ export function DashboardPage() {
     
     import("../services/apiClient").then(({ api }) => {
       Promise.all([
-        api.analytics.getMetrics("DEMO"),
-        api.orders.list(),
-        api.fleet.listVehicles(),
-        api.fleet.listDepots(),
-        api.returnLoads.list()
+        api.analytics.getMetrics(scenario),
+        api.orders.list({ scenario }),
+        api.fleet.listVehicles({ scenario }),
+        api.fleet.listDepots({ scenario }),
+        api.returnLoads.list({ scenario })
       ]).then(([metricsData, ordersData, fleetData, depotsData, rlData]) => {
         setMetrics(metricsData);
         setTotals({
@@ -54,7 +56,7 @@ export function DashboardPage() {
         setPageError(err.message || "Failed to load network overview data.");
         setFetchStatus("error");
       }).finally(() => {
-        api.optimization.getLatest("DEMO")
+        api.optimization.getLatest(scenario)
           .then(setLatestRun)
           .catch(err => {
             if (err.status !== 404) setOptError(true);
@@ -66,7 +68,7 @@ export function DashboardPage() {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [scenario]);
 
   const onAssign = (id: string) => setReturnLoads((prev) => prev ? prev.map((r) => r.id === id ? { ...r, status: "ASSIGNED" } : r) : null);
 
@@ -98,12 +100,23 @@ export function DashboardPage() {
             <div style={{ fontSize: 20, fontWeight: 700 }}>{isAdmin ? "Network Overview" : "My Operations"}</div>
             <div style={{ fontSize: 13, color: C.slate }}>{isAdmin ? "Cargo movement across the full Indore network." : `${profile?.operator_name || "Operator"} · Indore network.`}</div>
           </div>
-          <span style={{ fontSize: 10.5, fontFamily: mono, color: C.slate, border: `1px solid ${C.stone}`, padding: "3px 8px", borderRadius: 999 }}>LIVE SYSTEM</span>
+          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
+            <select 
+              aria-label="Select Scenario"
+              value={scenario} 
+              onChange={(e) => setScenario(e.target.value)}
+              style={{ padding: "4px 8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 12, background: C.ivory, cursor: "pointer" }}
+            >
+              <option value="DEMO">DEMO - Regional Network</option>
+              <option value="NETWORK">NETWORK - Extended Operations</option>
+            </select>
+            <span style={{ fontSize: 10.5, fontFamily: mono, color: C.slate, border: `1px solid ${C.stone}`, padding: "3px 8px", borderRadius: 999 }}>LIVE SYSTEM</span>
+          </div>
         </div>
         <div style={{ position: "relative" }}>
           {fetchStatus === "loading" && (
-            <div style={{ position: "absolute", inset: 0, background: "rgba(250,246,239,0.5)", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Loader2 size={24} color={C.slate} className="spin" />
+            <div role="status" aria-label="Loading map data" style={{ position: "absolute", inset: 0, background: "rgba(250,246,239,0.5)", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Loader2 size={24} color={C.slate} className="spin" aria-hidden="true" />
             </div>
           )}
           <NetworkMap />
@@ -164,9 +177,9 @@ export function DashboardPage() {
         {/* Return-Load Opportunities — real API data */}
         <Panel title="Return-Load Opportunities">
           {fetchStatus === "loading" && !returnLoads ? (
-            <div style={{ padding: "20px 0", display: "flex", justifyContent: "center" }}><Loader2 size={16} color={C.slate} className="spin" /></div>
+            <div role="status" aria-label="Loading return loads" style={{ padding: "20px 0", display: "flex", justifyContent: "center" }}><Loader2 size={16} color={C.slate} className="spin" aria-hidden="true" /></div>
           ) : !returnLoads || returnLoads.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: C.slate, padding: "8px 0" }}>No return loads in this scenario.</div>
+            <div role="status" aria-label="No return loads" style={{ fontSize: 12.5, color: C.slate, padding: "8px 0" }}>No return loads in this scenario.</div>
           ) : returnLoads.map((r) => (
             <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: `1px solid ${C.stone}`, fontSize: 12.5 }}>
               <div>
@@ -183,9 +196,9 @@ export function DashboardPage() {
         {/* Regional Depots — real API data */}
         <Panel title="Regional Depots">
           {fetchStatus === "loading" && !depots ? (
-            <div style={{ padding: "20px 0", display: "flex", justifyContent: "center" }}><Loader2 size={16} color={C.slate} className="spin" /></div>
+            <div role="status" aria-label="Loading depots" style={{ padding: "20px 0", display: "flex", justifyContent: "center" }}><Loader2 size={16} color={C.slate} className="spin" aria-hidden="true" /></div>
           ) : !depots || depots.length === 0 ? (
-            <div style={{ fontSize: 12.5, color: C.slate, padding: "8px 0" }}>No depots found.</div>
+            <div role="status" aria-label="No depots" style={{ fontSize: 12.5, color: C.slate, padding: "8px 0" }}>No depots found.</div>
           ) : depots.map((d) => (
             <div key={d.id} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 12.5 }}>
               <span>{d.name}</span>

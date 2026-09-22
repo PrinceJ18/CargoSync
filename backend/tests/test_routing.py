@@ -99,7 +99,7 @@ def test_osrm_timeout(mock_get):
     mock_get.side_effect = httpx.TimeoutException("Timeout")
     
     osrm = OSRMClient(base_url="http://test")
-    coords = [Coordinate(latitude=22.0, longitude=75.0), Coordinate(latitude=23.0, longitude=76.0)]
+    coords = [Coordinate(latitude=22.1, longitude=75.1), Coordinate(latitude=23.1, longitude=76.1)]
     
     with pytest.raises(ProviderTimeoutError):
         asyncio.run(osrm.get_route(coords))
@@ -112,7 +112,7 @@ def test_osrm_http_500(mock_get):
     mock_get.return_value = mock_response
     
     osrm = OSRMClient(base_url="http://test")
-    coords = [Coordinate(latitude=22.0, longitude=75.0), Coordinate(latitude=23.0, longitude=76.0)]
+    coords = [Coordinate(latitude=22.2, longitude=75.2), Coordinate(latitude=23.2, longitude=76.2)]
     
     with pytest.raises(ProviderHTTPError):
         asyncio.run(osrm.get_route(coords))
@@ -125,7 +125,7 @@ def test_osrm_no_route(mock_get):
     mock_get.return_value = mock_response
     
     osrm = OSRMClient(base_url="http://test")
-    coords = [Coordinate(latitude=22.0, longitude=75.0), Coordinate(latitude=23.0, longitude=76.0)]
+    coords = [Coordinate(latitude=22.3, longitude=75.3), Coordinate(latitude=23.3, longitude=76.3)]
     
     with pytest.raises(NoRouteFoundError):
         asyncio.run(osrm.get_route(coords))

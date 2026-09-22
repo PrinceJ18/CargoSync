@@ -16,19 +16,28 @@ export function FleetPage() {
   // Filters
   const [q, setQ] = useState("");
   const [statusFilter, setStatusFilter] = useState("");
+  const [scenario, setScenario] = useState("DEMO");
 
   // Pagination
   const [page, setPage] = useState(1);
 
   // Data
   const [data, setData] = useState<PaginatedResponse<Vehicle> | null>(null);
+
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
   const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "success" | "error">("loading");
   const [error, setError] = useState<import("../types/api").ApiError | null>(null);
 
   // Detail
   const [selected, setSelected] = useState<Vehicle | null>(null);
 
-  const fetchVehicles = useCallback((pg: number, statusVal?: string) => {
+  const fetchVehicles = useCallback((pg: number, statusVal?: string, scenarioVal?: string) => {
     setFetchStatus("loading");
     setError(null);
     import("../services/apiClient").then(({ api }) => {
@@ -36,6 +45,7 @@ export function FleetPage() {
         page: pg,
         page_size: PAGE_SIZE,
         status: statusVal || undefined,
+        scenario: scenarioVal,
       }).then(res => {
         setData(res);
         setFetchStatus("success");
@@ -48,8 +58,8 @@ export function FleetPage() {
   }, []);
 
   useEffect(() => {
-    fetchVehicles(page, statusFilter);
-  }, [page, statusFilter, fetchVehicles]);
+    fetchVehicles(page, statusFilter, scenario);
+  }, [page, statusFilter, scenario, fetchVehicles]);
 
   // Client-side search within currently loaded items
   const displayed = data?.items.filter((v) => {
@@ -66,6 +76,12 @@ export function FleetPage() {
   const handleStatusChange = (val: string) => {
     setStatusFilter(val);
     setPage(1); // reset to page 1 on filter change
+    setSelected(null);
+  };
+
+  const handleScenarioChange = (val: string) => {
+    setScenario(val);
+    setPage(1);
     setSelected(null);
   };
 
@@ -118,23 +134,28 @@ export function FleetPage() {
       {/* Filters */}
       <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
         <input
+          aria-label="Search fleet"
           placeholder="Search registration, operator, depot..."
           value={q} onChange={(e) => setQ(e.target.value)}
           style={{ ...selectStyle, flex: "1 1 220px", minWidth: 200 }}
         />
-        <select value={statusFilter} onChange={(e) => handleStatusChange(e.target.value)} disabled={fetchStatus === "loading"} style={selectStyle}>
+        <select aria-label="Filter by status" value={statusFilter} onChange={(e) => handleStatusChange(e.target.value)} disabled={fetchStatus === "loading"} style={selectStyle}>
           <option value="">All Statuses</option>
           {VEHICLE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
         </select>
-        {fetchStatus === "loading" && data && <Loader2 size={14} color={C.slate} className="spin" />}
+        <select aria-label="Select Scenario" value={scenario} onChange={(e) => handleScenarioChange(e.target.value)} disabled={fetchStatus === "loading"} style={selectStyle}>
+          <option value="DEMO">DEMO - Regional Network</option>
+          <option value="NETWORK">NETWORK - Extended Operations</option>
+        </select>
+        {fetchStatus === "loading" && data && <Loader2 size={14} color={C.slate} className="spin" aria-hidden="true" />}
       </div>
 
       {/* Table + Detail */}
-      <div style={{ display: "grid", gridTemplateColumns: selected ? "1fr 340px" : "1fr", gap: 16 }}>
-        <div style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, overflow: "hidden", position: "relative" }}>
+      <div style={{ display: isMobile ? "flex" : "grid", flexDirection: "column", gridTemplateColumns: selected && !isMobile ? "1fr 340px" : "1fr", gap: 16 }}>
+        <div style={{ flex: 1, background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, overflowX: "auto", position: "relative", minWidth: 0 }}>
           {fetchStatus === "loading" && data && (
-            <div style={{ position: "absolute", inset: 0, background: "rgba(250, 246, 239, 0.6)", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Loader2 size={24} color={C.slate} className="spin" />
+            <div role="status" aria-label="Loading fleet" style={{ position: "absolute", inset: 0, background: "rgba(250, 246, 239, 0.6)", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Loader2 size={24} color={C.slate} className="spin" aria-hidden="true" />
             </div>
           )}
           {(!data?.items || data.items.length === 0) ? (
@@ -156,7 +177,15 @@ export function FleetPage() {
               </thead>
               <tbody>
                 {displayed.map((v) => (
-                  <tr key={v.id} onClick={() => setSelected(v)} style={{ borderTop: `1px solid ${C.stone}`, cursor: "pointer", background: selected?.id === v.id ? C.cream : "transparent" }}>
+                  <tr 
+                    key={v.id} 
+                    onClick={() => setSelected(v)} 
+                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(v); } }}
+                    tabIndex={0}
+                    role="button"
+                    aria-pressed={selected?.id === v.id}
+                    style={{ borderTop: `1px solid ${C.stone}`, cursor: "pointer", background: selected?.id === v.id ? C.cream : "transparent" }}
+                  >
                     <td style={{ padding: "10px 14px", fontFamily: mono, fontWeight: 500 }}>{v.reference_number || v.id.slice(0, 8)}</td>
                     <td style={{ padding: "10px 14px" }}>{v.operator?.name || "—"}</td>
                     <td style={{ padding: "10px 14px" }}>{v.depot?.name || "—"}</td>
@@ -172,8 +201,8 @@ export function FleetPage() {
           {pages > 1 && (
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderTop: `1px solid ${C.stone}`, fontSize: 12, color: C.slate }}>
               <span>Page {page} of {pages} · {total.toLocaleString()} vehicles</span>
-              <div style={{ display: "flex", gap: 4 }}>
-                <PageBtn disabled={page <= 1 || fetchStatus === "loading"} onClick={() => handlePageChange(page - 1)}><ChevronLeft size={14} /></PageBtn>
+              <div style={{ display: "flex", gap: 4 }} role="navigation" aria-label="Pagination">
+                <PageBtn aria-label="Previous Page" disabled={page <= 1 || fetchStatus === "loading"} onClick={() => handlePageChange(page - 1)}><ChevronLeft size={14} /></PageBtn>
                 {Array.from({ length: Math.min(pages, 7) }, (_, i) => {
                   let p: number;
                   if (pages <= 7) { p = i + 1; }
@@ -181,10 +210,10 @@ export function FleetPage() {
                   else if (page >= pages - 3) { p = pages - 6 + i; }
                   else { p = page - 3 + i; }
                   return (
-                    <PageBtn key={p} active={p === page} disabled={fetchStatus === "loading"} onClick={() => handlePageChange(p)}>{p}</PageBtn>
+                    <PageBtn aria-label={`Page ${p}`} key={p} active={p === page} disabled={fetchStatus === "loading"} onClick={() => handlePageChange(p)}>{p}</PageBtn>
                   );
                 })}
-                <PageBtn disabled={page >= pages || fetchStatus === "loading"} onClick={() => handlePageChange(page + 1)}><ChevronRight size={14} /></PageBtn>
+                <PageBtn aria-label="Next Page" disabled={page >= pages || fetchStatus === "loading"} onClick={() => handlePageChange(page + 1)}><ChevronRight size={14} /></PageBtn>
               </div>
             </div>
           )}
@@ -192,13 +221,19 @@ export function FleetPage() {
 
         {/* Detail Panel */}
         {selected && (
-          <div style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: 18, alignSelf: "start", position: "sticky", top: 70 }}>
+          <div style={
+            isMobile
+              ? { position: "fixed", inset: 0, zIndex: 100, background: C.ivory, padding: 26, overflowY: "auto", border: "none", borderRadius: 0 }
+              : { background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: 18, alignSelf: "start", position: "sticky", top: 70 }
+          }>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
               <div>
                 <div style={{ fontFamily: mono, fontWeight: 700, fontSize: 14 }}>{selected.reference_number || selected.id.slice(0, 12)}</div>
                 <div style={{ fontSize: 12, color: C.slate, marginTop: 2 }}>{selected.operator?.name || "Unknown operator"}</div>
               </div>
-              <X size={15} style={{ cursor: "pointer", flexShrink: 0 }} onClick={() => setSelected(null)} />
+              <button aria-label="Close details" onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                <X size={15} color={C.slate} />
+              </button>
             </div>
             <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 4, fontSize: 12.5 }}>
               <Row l="Status" v={<StatusBadge status={selected.status} />} />
@@ -217,9 +252,11 @@ export function FleetPage() {
 }
 
 /** Pagination button */
-function PageBtn({ children, active, disabled, onClick }: { children: React.ReactNode; active?: boolean; disabled?: boolean; onClick: () => void }) {
+function PageBtn({ children, active, disabled, onClick, "aria-label": ariaLabel }: { children: React.ReactNode; active?: boolean; disabled?: boolean; onClick: () => void; "aria-label"?: string }) {
   return (
     <button
+      aria-label={ariaLabel}
+      aria-current={active ? "page" : undefined}
       onClick={onClick}
       disabled={disabled}
       style={{

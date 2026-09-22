@@ -69,7 +69,7 @@ export function LoginPage() {
   return (
     <div style={{ minHeight: "100vh", background: isBiz ? C.ivory : C.ink, fontFamily: font, display: "grid", gridTemplateColumns: "1fr 1fr" }}>
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 8%", background: isBiz ? C.navy : C.ink, color: C.ivory }}>
-        <div onClick={() => setMode("select")} style={{ fontSize: 13, color: "rgba(250,246,239,0.6)", cursor: "pointer", marginBottom: 26 }}>← Back</div>
+        <button aria-label="Go back to workspace selection" onClick={() => setMode("select")} style={{ fontSize: 13, color: "rgba(250,246,239,0.6)", cursor: "pointer", marginBottom: 26, background: "none", border: "none", padding: 0, textAlign: "left" }}>← Back</button>
         <div style={{ fontSize: 12, fontFamily: mono, color: isBiz ? C.peach : C.slate, marginBottom: 14 }}>
           {isBiz ? "FOR LOGISTICS OPERATORS" : "FOR CARGOSYNC ADMINISTRATORS"}
         </div>
@@ -87,15 +87,17 @@ export function LoginPage() {
           </div>
         )}
 
-        <label style={{ fontSize: 12, color: C.slate, marginBottom: 6 }}>Email</label>
+        <label htmlFor="login-email" style={{ fontSize: 12, color: C.slate, marginBottom: 6 }}>Email</label>
         <input 
+          id="login-email"
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           style={{ padding: "11px 14px", borderRadius: 4, border: `1px solid ${C.stone}`, marginBottom: 16, fontSize: 14 }} 
         />
         
-        <label style={{ fontSize: 12, color: C.slate, marginBottom: 6 }}>Password</label>
+        <label htmlFor="login-password" style={{ fontSize: 12, color: C.slate, marginBottom: 6 }}>Password</label>
         <input 
+          id="login-password"
           type="password" 
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -116,9 +118,9 @@ export function LoginPage() {
         
         <div style={{ fontSize: 12, color: C.slate, marginTop: 24, textAlign: "center" }}>
           {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
-          <span onClick={() => setIsSignUp(!isSignUp)} style={{ color: C.coral, cursor: "pointer", fontWeight: 600 }}>
+          <button aria-label={isSignUp ? "Switch to Sign In" : "Switch to Sign Up"} onClick={() => setIsSignUp(!isSignUp)} style={{ color: C.coral, cursor: "pointer", fontWeight: 600, background: "none", border: "none", padding: 0 }}>
             {isSignUp ? "Sign In" : "Sign Up"}
-          </span>
+          </button>
         </div>
       </div>
     </div>

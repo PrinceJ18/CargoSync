@@ -55,6 +55,7 @@ export function ImpactPage() {
           <div style={{ fontSize: 20, fontWeight: 700 }}>Impact & ROI</div>
           <div style={{ width: 240 }}>
             <select 
+              aria-label="Select Scenario"
               value={scenario} 
               onChange={(e) => setScenario(e.target.value)}
               disabled
@@ -67,8 +68,8 @@ export function ImpactPage() {
         </div>
         <div style={{ fontSize: 13, color: C.slate, marginBottom: 20 }}>Operational savings and environmental impact for the {scenario} scenario.</div>
         
-        <div style={{ padding: 40, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, color: C.slate, gap: 10 }}>
-          <Loader2 size={24} className="spin" /> Loading impact analytics...
+        <div role="status" aria-label="Loading impact data" style={{ padding: 40, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, color: C.slate, gap: 10 }}>
+          <Loader2 size={24} className="spin" aria-hidden="true" /> Loading impact analytics...
         </div>
       </div>
     );
@@ -99,6 +100,7 @@ export function ImpactPage() {
         
         <div style={{ marginBottom: 16, width: 240 }}>
           <select 
+            aria-label="Select Scenario"
             value={scenario} 
             onChange={(e) => setScenario(e.target.value)}
             style={{ width: "100%", padding: "8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 13 }}
@@ -153,6 +155,7 @@ export function ImpactPage() {
         <div style={{ fontSize: 20, fontWeight: 700 }}>Impact & ROI</div>
         <div style={{ width: 240 }}>
           <select 
+            aria-label="Select Scenario"
             value={scenario} 
             onChange={(e) => setScenario(e.target.value)}
             style={{ width: "100%", padding: "6px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 12 }}
@@ -176,15 +179,17 @@ export function ImpactPage() {
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
         <Panel title="Before vs After — Distance (km)">
           {distanceData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={distanceData}>
-                <CartesianGrid strokeDasharray="3 3" stroke={C.stone} vertical={false} />
-                <XAxis dataKey="name" fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} />
-                <YAxis fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} />
-                <Tooltip cursor={{ fill: C.cream }} contentStyle={{ borderRadius: 6, border: `1px solid ${C.stone}` }} />
-                <Bar dataKey="value" fill={C.coral} radius={[3, 3, 0, 0]} maxBarSize={60} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div role="img" aria-label={`Bar chart comparing baseline distance ${distanceData[0].value}km and optimized distance ${distanceData[1].value}km`}>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={distanceData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.stone} vertical={false} />
+                  <XAxis dataKey="name" fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} />
+                  <YAxis fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} />
+                  <Tooltip cursor={{ fill: C.cream }} contentStyle={{ borderRadius: 6, border: `1px solid ${C.stone}` }} />
+                  <Bar dataKey="value" fill={C.coral} radius={[3, 3, 0, 0]} maxBarSize={60} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div style={{ height: 240, display: "flex", alignItems: "center", justifyContent: "center", color: C.slate, fontSize: 13 }}>
               Distance data unavailable.
@@ -199,15 +204,17 @@ export function ImpactPage() {
 
         <Panel title="Before vs After — Fleet Size (Vehicles)">
           {vehicleData.length > 0 ? (
-            <ResponsiveContainer width="100%" height={240}>
-              <BarChart data={vehicleData}>
-                <CartesianGrid strokeDasharray="3 3" stroke={C.stone} vertical={false} />
-                <XAxis dataKey="name" fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} />
-                <YAxis fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} allowDecimals={false} />
-                <Tooltip cursor={{ fill: C.cream }} contentStyle={{ borderRadius: 6, border: `1px solid ${C.stone}` }} />
-                <Bar dataKey="value" fill={C.navy} radius={[3, 3, 0, 0]} maxBarSize={60} />
-              </BarChart>
-            </ResponsiveContainer>
+            <div role="img" aria-label={`Bar chart comparing baseline vehicles ${vehicleData[0].value} and optimized vehicles ${vehicleData[1].value}`}>
+              <ResponsiveContainer width="100%" height={240}>
+                <BarChart data={vehicleData}>
+                  <CartesianGrid strokeDasharray="3 3" stroke={C.stone} vertical={false} />
+                  <XAxis dataKey="name" fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} />
+                  <YAxis fontSize={11} tick={{ fill: C.slate }} axisLine={false} tickLine={false} allowDecimals={false} />
+                  <Tooltip cursor={{ fill: C.cream }} contentStyle={{ borderRadius: 6, border: `1px solid ${C.stone}` }} />
+                  <Bar dataKey="value" fill={C.navy} radius={[3, 3, 0, 0]} maxBarSize={60} />
+                </BarChart>
+              </ResponsiveContainer>
+            </div>
           ) : (
             <div style={{ height: 240, display: "flex", alignItems: "center", justifyContent: "center", color: C.slate, fontSize: 13 }}>
               Vehicle count data unavailable.

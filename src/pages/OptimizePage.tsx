@@ -77,8 +77,9 @@ export function OptimizePage() {
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
         <Panel title="Scenario Setup">
           <div style={{ marginBottom: 16 }}>
-            <label style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Select Dataset:</label>
+            <label htmlFor="scenario-select" style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Select Dataset:</label>
             <select 
+              id="scenario-select"
               value={scenario} 
               onChange={(e) => {
                 if (!running) setScenario(e.target.value);
@@ -119,9 +120,9 @@ export function OptimizePage() {
         </Panel>
         <Panel title="Pipeline Execution">
           {running ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14, padding: "10px 0" }}>
+            <div role="status" aria-label="Optimization Running" style={{ display: "flex", flexDirection: "column", gap: 14, padding: "10px 0" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <RefreshCw size={18} color={C.coral} className="spin" />
+                <RefreshCw size={18} color={C.coral} className="spin" aria-hidden="true" />
                 <div style={{ fontSize: 14, color: C.ink, fontWeight: 600 }}>Optimization engine running...</div>
               </div>
               <div style={{ fontSize: 12, color: C.slate }}>Executing synchronous pipeline. This typically takes a few seconds.</div>
@@ -131,14 +132,14 @@ export function OptimizePage() {
                     <span style={{ fontSize: 11, fontFamily: mono, color: C.ink, background: C.cream, border: `1px solid ${C.stone}`, padding: "3px 8px", borderRadius: 4 }}>
                       {stage}
                     </span>
-                    {i < PIPELINE_STAGES.length - 1 && <ArrowRight size={10} color={C.slate} />}
+                    {i < PIPELINE_STAGES.length - 1 && <ArrowRight size={10} color={C.slate} aria-hidden="true" />}
                   </div>
                 ))}
               </div>
             </div>
           ) : loadingLatest ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", color: C.slate, fontSize: 13 }}>
-              <RefreshCw size={14} className="spin" /> Loading latest run data...
+            <div role="status" aria-label="Loading latest run" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", color: C.slate, fontSize: 13 }}>
+              <RefreshCw size={14} className="spin" aria-hidden="true" /> Loading latest run data...
             </div>
           ) : result ? (
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

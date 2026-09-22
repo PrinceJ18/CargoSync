@@ -111,39 +111,43 @@ import type { Order, Vehicle, ReturnLoad, AnalyticsMetricsResponse, Optimization
 
 export const api = {
   orders: {
-    list: (params?: { page?: number; page_size?: number; status?: string }) => {
+    list: (params?: { page?: number; page_size?: number; status?: string; scenario?: string }) => {
       const p = new URLSearchParams();
       if (params?.page) p.set("page", params.page.toString());
       if (params?.page_size) p.set("page_size", params.page_size.toString());
       if (params?.status) p.set("status", params.status);
+      if (params?.scenario) p.set("scenario", params.scenario);
       const qs = p.toString();
       return apiClient.get<PaginatedResponse<Order>>(`/orders${qs ? `?${qs}` : ""}`);
     },
   },
   fleet: {
-    listVehicles: (params?: { page?: number; page_size?: number; status?: string }) => {
+    listVehicles: (params?: { page?: number; page_size?: number; status?: string; scenario?: string }) => {
       const p = new URLSearchParams();
       if (params?.page) p.set("page", params.page.toString());
       if (params?.page_size) p.set("page_size", params.page_size.toString());
       if (params?.status) p.set("status", params.status);
+      if (params?.scenario) p.set("scenario", params.scenario);
       const qs = p.toString();
       return apiClient.get<PaginatedResponse<Vehicle>>(`/vehicles${qs ? `?${qs}` : ""}`);
     },
-    listDepots: (params?: { page?: number; page_size?: number; status?: string }) => {
+    listDepots: (params?: { page?: number; page_size?: number; status?: string; scenario?: string }) => {
       const p = new URLSearchParams();
       if (params?.page) p.set("page", params.page.toString());
       if (params?.page_size) p.set("page_size", params.page_size.toString());
       if (params?.status) p.set("status", params.status);
+      if (params?.scenario) p.set("scenario", params.scenario);
       const qs = p.toString();
       return apiClient.get<PaginatedResponse<Depot>>(`/depots${qs ? `?${qs}` : ""}`);
     },
   },
   returnLoads: {
-    list: (params?: { page?: number; page_size?: number; status?: string }) => {
+    list: (params?: { page?: number; page_size?: number; status?: string; scenario?: string }) => {
       const p = new URLSearchParams();
       if (params?.page) p.set("page", params.page.toString());
       if (params?.page_size) p.set("page_size", params.page_size.toString());
       if (params?.status) p.set("status", params.status);
+      if (params?.scenario) p.set("scenario", params.scenario);
       const qs = p.toString();
       return apiClient.get<PaginatedResponse<ReturnLoad>>(`/return-loads${qs ? `?${qs}` : ""}`);
     },

@@ -12,6 +12,7 @@ export function NetworkPage() {
   const [orders, setOrders] = useState<Order[]>([]);
   const [returnLoads, setReturnLoads] = useState<ReturnLoad[]>([]);
   const [depots, setDepots] = useState<Depot[]>([]);
+  const [scenario, setScenario] = useState("DEMO");
   
   const [totalOrders, setTotalOrders] = useState(0);
   const [totalReturnLoads, setTotalReturnLoads] = useState(0);
@@ -40,9 +41,9 @@ export function NetworkPage() {
     setPartialErrors([]);
     import("../services/apiClient").then(({ api }) => {
       Promise.allSettled([
-        api.orders.list({ page_size: 100 }), // Load a larger slice for the map view
-        api.returnLoads.list({ page_size: 100 }),
-        api.fleet.listDepots({ page_size: 100 })
+        api.orders.list({ page_size: 100, scenario }), // Load a larger slice for the map view
+        api.returnLoads.list({ page_size: 100, scenario }),
+        api.fleet.listDepots({ page_size: 100, scenario })
       ]).then(([oRes, rRes, dRes]) => {
         let hasError = false;
         const errs: string[] = [];
@@ -95,36 +96,50 @@ export function NetworkPage() {
 
   useEffect(() => {
     loadData();
-  }, []);
+  }, [scenario]);
 
   // Center on Indore roughly
   const center: [number, number] = [22.7196, 75.8577];
 
   return (
     <div style={{ padding: 26, display: "flex", flexDirection: "column", height: "calc(100vh - 60px)" }}>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Network Map</div>
-      <div style={{ fontSize: 13, color: C.slate, marginBottom: 18 }}>
-        {isAdmin ? "Geographical distribution of network orders, depots, and return loads." : "Geographical distribution for your operations."}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+        <div>
+          <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Network Map</div>
+          <div style={{ fontSize: 13, color: C.slate, marginBottom: 18 }}>
+            {isAdmin ? "Geographical distribution of network orders, depots, and return loads." : "Geographical distribution for your operations."}
+          </div>
+        </div>
+        <select 
+          aria-label="Select Scenario"
+          value={scenario} 
+          onChange={(e) => setScenario(e.target.value)}
+          style={{ padding: "4px 8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 12, background: C.ivory, cursor: "pointer" }}
+        >
+          <option value="DEMO">DEMO - Regional Network</option>
+          <option value="NETWORK">NETWORK - Extended Operations</option>
+        </select>
       </div>
       
       <div style={{ display: "flex", gap: 20, marginBottom: 16 }}>
-        <div style={{ display: "flex", gap: 14, background: C.ivory, padding: "8px 16px", borderRadius: 6, border: `1px solid ${C.stone}` }}>
+        <fieldset style={{ display: "flex", gap: 14, background: C.ivory, padding: "8px 16px", borderRadius: 6, border: `1px solid ${C.stone}`, margin: 0 }}>
+          <legend className="sr-only" style={{ display: "none" }}>Map Filters</legend>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer", fontWeight: 500 }}>
             <input type="checkbox" checked={showDepots} onChange={(e) => setShowDepots(e.target.checked)} />
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: C.navy }} /> 
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: C.navy }} aria-hidden="true" /> 
             Depots ({fetchStatus === "loading" && depots.length === 0 ? "..." : `${depots.length}${totalDepots > depots.length ? ` of ${totalDepots}` : ""}`})
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer", fontWeight: 500 }}>
             <input type="checkbox" checked={showOrders} onChange={(e) => setShowOrders(e.target.checked)} />
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: C.coral }} /> 
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: C.coral }} aria-hidden="true" /> 
             Orders ({fetchStatus === "loading" && orders.length === 0 ? "..." : `${orders.length}${totalOrders > orders.length ? ` of ${totalOrders}` : ""}`})
           </label>
           <label style={{ display: "flex", alignItems: "center", gap: 6, fontSize: 13, cursor: "pointer", fontWeight: 500 }}>
             <input type="checkbox" checked={showReturns} onChange={(e) => setShowReturns(e.target.checked)} />
-            <div style={{ width: 10, height: 10, borderRadius: "50%", background: C.emerald }} /> 
+            <div style={{ width: 10, height: 10, borderRadius: "50%", background: C.emerald }} aria-hidden="true" /> 
             Return Loads ({fetchStatus === "loading" && returnLoads.length === 0 ? "..." : `${returnLoads.length}${totalReturnLoads > returnLoads.length ? ` of ${totalReturnLoads}` : ""}`})
           </label>
-        </div>
+        </fieldset>
       </div>
 
       {partialErrors.length > 0 && (
@@ -138,8 +153,8 @@ export function NetworkPage() {
         <div style={{ border: `1px solid ${C.stone}`, borderRadius: 6, overflow: "hidden", background: C.cream, position: "relative", zIndex: 1, height: "100%", minHeight: 500, display: "flex", flexDirection: "column" }}>
         
         {fetchStatus === "loading" && (!orders.length && !returnLoads.length && !depots.length) && (
-          <div style={{ position: "absolute", zIndex: 1000, top: "50%", left: "50%", transform: "translate(-50%, -50%)", display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: C.slate, background: "rgba(255,255,255,0.9)", padding: "12px 24px", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            <Loader2 size={18} className="spin" /> Loading map data...
+          <div role="status" aria-label="Loading map data" style={{ position: "absolute", zIndex: 1000, top: "50%", left: "50%", transform: "translate(-50%, -50%)", display: "flex", alignItems: "center", gap: 10, fontSize: 14, color: C.slate, background: "rgba(255,255,255,0.9)", padding: "12px 24px", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
+            <Loader2 size={18} className="spin" aria-hidden="true" /> Loading map data...
           </div>
         )}
 
@@ -205,12 +220,14 @@ export function NetworkPage() {
           <div style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: 22, overflowY: "auto" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                {selected.type === "depot" && <MapPin size={18} color={C.navy} />}
-                {selected.type === "order" && <Package size={18} color={C.coral} />}
-                {selected.type === "return" && <RefreshCw size={18} color={C.emerald} />}
+                {selected.type === "depot" && <MapPin size={18} color={C.navy} aria-hidden="true" />}
+                {selected.type === "order" && <Package size={18} color={C.coral} aria-hidden="true" />}
+                {selected.type === "return" && <RefreshCw size={18} color={C.emerald} aria-hidden="true" />}
                 <div style={{ fontSize: 16, fontWeight: 700, textTransform: "capitalize" }}>{selected.type} Details</div>
               </div>
-              <X size={18} color={C.slate} style={{ cursor: "pointer" }} onClick={() => setSelected(null)} />
+              <button aria-label="Close details" onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
+                <X size={18} color={C.slate} />
+              </button>
             </div>
 
             <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

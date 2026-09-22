@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { Search, Bell, Navigation, ChevronDown } from "lucide-react";
+import { Search, Bell, Navigation, ChevronDown, Menu, X } from "lucide-react";
 import { C, font, mono } from "../data/prototype/designTokens";
 import { supabase } from "../lib/supabase/client";
 
@@ -24,13 +24,31 @@ export function AppShell() {
   const location = useLocation();
   const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
   const menuRef = useRef<HTMLDivElement>(null);
   const { user, profile, isLoading } = useAuth();
 
-  // Close dropdown on route change
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  // Close dropdown and mobile nav on route change
   useEffect(() => {
     setMenu(false);
+    setMobileNavOpen(false);
   }, [location.pathname]);
+
+  // Close mobile nav on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileNavOpen(false);
+    };
+    document.addEventListener("keydown", handleKeyDown);
+    return () => document.removeEventListener("keydown", handleKeyDown);
+  }, []);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -75,54 +93,91 @@ export function AppShell() {
       <style>{`.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* Top Navigation */}
-      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 26px", borderBottom: `1px solid ${C.stone}`, background: C.ivory, position: "sticky", top: 0, zIndex: 30 }}>
+      <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 26px", borderBottom: `1px solid ${C.stone}`, background: C.ivory, position: "sticky", top: 0, zIndex: 50 }}>
         <div style={{ display: "flex", alignItems: "center", gap: 30 }}>
-          <Link to="/app/overview" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "inherit" }}>
-            <div style={{ width: 20, height: 20, borderRadius: 5, background: C.coral, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Navigation size={11} color={C.ivory} strokeWidth={2.5} />
-            </div>
-            <span style={{ fontWeight: 700, fontSize: 13.5 }}>CargoSync</span>
-          </Link>
-          <div style={{ display: "flex", gap: 4 }}>
-            {NAV_ITEMS.map((item) => {
-              const isActive = location.pathname === item.path || (item.path !== "/app/overview" && location.pathname.startsWith(item.path + "/"));
-              return (
-                <Link key={item.label} to={item.path} style={{
-                  background: isActive ? C.stone : "transparent",
-                  border: "none", textDecoration: "none",
-                  padding: "7px 13px", borderRadius: 6, fontSize: 13, fontWeight: 500,
-                  color: isActive ? C.ink : "#5B5E68",
-                }}>{item.label}</Link>
-              );
-            })}
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            {isMobile && (
+              <button aria-label="Toggle mobile menu" aria-expanded={mobileNavOpen} onClick={() => setMobileNavOpen(!mobileNavOpen)} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", display: "flex" }}>
+                {mobileNavOpen ? <X size={20} color={C.slate} /> : <Menu size={20} color={C.slate} />}
+              </button>
+            )}
+            <Link to="/app/overview" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "inherit" }}>
+              <div style={{ width: 20, height: 20, borderRadius: 5, background: C.coral, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Navigation size={11} color={C.ivory} strokeWidth={2.5} />
+              </div>
+              <span style={{ fontWeight: 700, fontSize: 13.5 }}>CargoSync</span>
+            </Link>
           </div>
+
+          {!isMobile && (
+            <div style={{ display: "flex", gap: 4 }}>
+              {NAV_ITEMS.map((item) => {
+                const isActive = location.pathname === item.path || (item.path !== "/app/overview" && location.pathname.startsWith(item.path + "/"));
+                return (
+                  <Link key={item.label} to={item.path} style={{
+                    background: isActive ? C.stone : "transparent",
+                    border: "none", textDecoration: "none",
+                    padding: "7px 13px", borderRadius: 6, fontSize: 13, fontWeight: 500,
+                    color: isActive ? C.ink : "#5B5E68",
+                  }}>{item.label}</Link>
+                );
+              })}
+            </div>
+          )}
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <Search size={16} color={C.slate} style={{ cursor: "pointer" }} />
-          <Bell size={16} color={C.slate} style={{ cursor: "pointer" }} />
+          <button aria-label="Search" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+            <Search size={16} color={C.slate} />
+          </button>
+          <button aria-label="Notifications" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+            <Bell size={16} color={C.slate} />
+          </button>
           <div style={{ fontSize: 11, fontFamily: mono, color: C.emerald, display: "flex", alignItems: "center", gap: 5 }}>
             <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.emerald }} /> LIVE
           </div>
           <div style={{ position: "relative" }} ref={menuRef}>
-            <div onClick={() => setMenu(!menu)} style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 10px", borderRadius: 6, border: `1px solid ${C.stone}` }}>
+            <button 
+              aria-label="User menu"
+              aria-expanded={menu}
+              aria-haspopup="true"
+              onClick={() => setMenu(!menu)} 
+              style={{ display: "flex", alignItems: "center", gap: 6, cursor: "pointer", padding: "5px 10px", borderRadius: 6, border: `1px solid ${C.stone}`, background: "none", textAlign: "left" }}
+            >
               <div style={{ width: 22, height: 22, borderRadius: "50%", background: C.navy, color: C.ivory, fontSize: 10, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center" }}>{displayInitials}</div>
               <div>
                 <div style={{ fontSize: 12, fontWeight: 600, lineHeight: 1.1 }}>{displayName}</div>
                 <div style={{ fontSize: 10, color: C.slate, lineHeight: 1.1 }}>{displayRole}</div>
               </div>
               <ChevronDown size={13} color={C.slate} />
-            </div>
+            </button>
             {menu && (
-              <div style={{ position: "absolute", right: 0, top: 42, background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, width: 160, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", overflow: "hidden", zIndex: 50 }}>
+              <div role="menu" style={{ position: "absolute", right: 0, top: 42, background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, width: 160, boxShadow: "0 8px 24px rgba(0,0,0,0.08)", overflow: "hidden", zIndex: 50 }}>
                 {["Profile", "Settings", "Workspace"].map((m) => (
-                  <div key={m} style={{ padding: "10px 14px", fontSize: 13, cursor: "pointer" }}>{m}</div>
+                  <button role="menuitem" key={m} style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, cursor: "pointer", background: "none", border: "none" }}>{m}</button>
                 ))}
-                <div onClick={handleLogout} style={{ padding: "10px 14px", fontSize: 13, cursor: "pointer", color: C.red, borderTop: `1px solid ${C.stone}` }}>Sign out</div>
+                <button role="menuitem" onClick={handleLogout} style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, cursor: "pointer", color: C.red, borderTop: `1px solid ${C.stone}`, background: "none", borderLeft: "none", borderRight: "none", borderBottom: "none" }}>Sign out</button>
               </div>
             )}
           </div>
         </div>
       </nav>
+
+      {/* Mobile Nav Overlay */}
+      {isMobile && mobileNavOpen && (
+        <div style={{ position: "fixed", inset: "54px 0 0 0", zIndex: 40, background: C.ivory, borderTop: `1px solid ${C.stone}`, padding: "20px 26px", display: "flex", flexDirection: "column", gap: 10, overflowY: "auto" }}>
+          {NAV_ITEMS.map((item) => {
+            const isActive = location.pathname === item.path || (item.path !== "/app/overview" && location.pathname.startsWith(item.path + "/"));
+            return (
+              <Link key={item.label} to={item.path} onClick={() => setMobileNavOpen(false)} style={{
+                background: isActive ? C.stone : "transparent",
+                border: "none", textDecoration: "none",
+                padding: "10px 16px", borderRadius: 6, fontSize: 14, fontWeight: 600,
+                color: isActive ? C.ink : "#5B5E68",
+              }}>{item.label}</Link>
+            );
+          })}
+        </div>
+      )}
 
       {/* Page content outlet */}
       <main style={{ flex: 1, minHeight: 0 }}>
