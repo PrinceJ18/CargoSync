@@ -3,8 +3,8 @@ import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
 import { Search, Bell, Navigation, ChevronDown, Menu, X } from "lucide-react";
 import { C, font, mono } from "../data/prototype/designTokens";
 import { supabase } from "../lib/supabase/client";
-
 import { useAuth } from "../contexts/AuthContext";
+import { useMobile } from "../hooks/useMobile";
 
 const NAV_ITEMS = [
   { label: "Overview", path: "/app/overview" },
@@ -25,15 +25,9 @@ export function AppShell() {
   const navigate = useNavigate();
   const [menu, setMenu] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const isMobile = useMobile();
   const menuRef = useRef<HTMLDivElement>(null);
   const { user, profile, isLoading } = useAuth();
-
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
 
   // Close dropdown and mobile nav on route change
   useEffect(() => {

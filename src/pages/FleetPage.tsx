@@ -4,6 +4,7 @@ import { C, mono } from "../data/prototype/designTokens";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { Row } from "../components/shared/Row";
 import { useAuth } from "../contexts/AuthContext";
+import { useMobile } from "../hooks/useMobile";
 import type { Vehicle, PaginatedResponse } from "../types/api";
 
 const PAGE_SIZE = 20;
@@ -24,12 +25,7 @@ export function FleetPage() {
   // Data
   const [data, setData] = useState<PaginatedResponse<Vehicle> | null>(null);
 
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
-  useEffect(() => {
-    const handleResize = () => setIsMobile(window.innerWidth <= 768);
-    window.addEventListener("resize", handleResize);
-    return () => window.removeEventListener("resize", handleResize);
-  }, []);
+  const isMobile = useMobile();
 
   const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "success" | "error">("loading");
   const [error, setError] = useState<import("../types/api").ApiError | null>(null);
