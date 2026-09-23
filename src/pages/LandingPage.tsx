@@ -25,7 +25,7 @@ export function LandingPage() {
       <LandingNav scrolled={scrolled} />
 
       {/* HERO */}
-      <section style={{ padding: "150px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
+      <section id="platform" style={{ padding: "150px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 0.9fr", gap: 60, alignItems: "center" }}>
           <div>
             <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontFamily: mono, color: C.slate, marginBottom: 22, border: `1px solid ${C.stone}`, padding: "5px 10px", borderRadius: 999 }}>
@@ -38,10 +38,10 @@ export function LandingPage() {
               CargoSync coordinates shared logistics capacity across multiple operators, optimizes delivery routes, and matches compatible return shipments.
             </p>
             <div style={{ display: "flex", gap: 14, marginTop: 30 }}>
-              <button onClick={() => navigate("/login")} style={{ background: C.ink, color: C.ivory, border: "none", padding: "14px 24px", borderRadius: 4, fontSize: 14.5, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
+              <button className="c-btn-hover" onClick={() => navigate("/login")} style={{ background: C.ink, color: C.ivory, border: "none", padding: "14px 24px", borderRadius: 4, fontSize: 14.5, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 8 }}>
                 Explore the platform <ArrowRight size={15} />
               </button>
-              <button onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "transparent", color: C.ink, border: `1px solid ${C.stone}`, padding: "14px 24px", borderRadius: 4, fontSize: 14.5, fontWeight: 500, cursor: "pointer" }}>
+              <button className="c-btn-hover" onClick={() => document.getElementById("how-it-works")?.scrollIntoView({ behavior: "smooth" })} style={{ background: "transparent", color: C.ink, border: `1px solid ${C.stone}`, padding: "14px 24px", borderRadius: 4, fontSize: 14.5, fontWeight: 500, cursor: "pointer" }}>
                 See how it works
               </button>
             </div>
@@ -69,21 +69,6 @@ export function LandingPage() {
         <BeforeAfterToggle />
       </section>
 
-      {/* FEATURES */}
-      <section style={{ padding: "40px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
-        <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 34 }}>
-          One network. Multiple advantages.
-        </h2>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
-          <FeatureCard n="01" title="Shared Capacity" text="Coordinate delivery demand across multiple operators instead of routing in isolation." mini={<NetworkMini />} />
-          <FeatureCard n="02" title="Geographic Clustering" text="DBSCAN groups geographically dense delivery requests into feasible service pockets." mini={<ClusterMini />} />
-          <FeatureCard n="03" title="Constrained Routing" text="OR-Tools generates a feasible route considering vehicle capacity and configured constraints." mini={<RouteMini />} />
-          <FeatureCard n="04" title="Return-Load Matching" text="Finds compatible cargo for the return journey, turning empty miles into revenue." mini={<ReturnMini />} />
-          <FeatureCard n="05" title="Measurable Savings" text="Compares baseline independent routing against CargoSync's coordinated result." mini={<SavingsMini />} />
-          <FeatureCard n="06" title="Network Visibility" text="Visualize routes, vehicles and operational impact across the entire network." mini={<CapacityMini />} />
-        </div>
-      </section>
-
       {/* HOW IT WORKS */}
       <section id="how-it-works" style={{ padding: "40px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
         <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 30 }}>
@@ -100,8 +85,23 @@ export function LandingPage() {
         <ReturnShowcase />
       </section>
 
+      {/* FEATURES */}
+      <section id="optimization" style={{ padding: "40px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
+        <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 34 }}>
+          One network. Multiple advantages.
+        </h2>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
+          <FeatureCard n="01" title="Shared Capacity" text="Coordinate delivery demand across multiple operators instead of routing in isolation." mini={<NetworkMini />} />
+          <FeatureCard n="02" title="Geographic Clustering" text="DBSCAN groups geographically dense delivery requests into feasible service pockets." mini={<ClusterMini />} />
+          <FeatureCard n="03" title="Constrained Routing" text="OR-Tools generates a feasible route considering vehicle capacity and configured constraints." mini={<RouteMini />} />
+          <FeatureCard n="04" title="Return-Load Matching" text="Finds compatible cargo for the return journey, turning empty miles into revenue." mini={<ReturnMini />} />
+          <FeatureCard n="05" title="Measurable Savings" text="Compares baseline independent routing against CargoSync's coordinated result." mini={<SavingsMini />} />
+          <FeatureCard n="06" title="Network Visibility" text="Visualize routes, vehicles and operational impact across the entire network." mini={<CapacityMini />} />
+        </div>
+      </section>
+
       {/* IMPACT */}
-      <section style={{ padding: "40px 6% 100px", background: C.cream }}>
+      <section id="impact" style={{ padding: "40px 6% 100px", background: C.cream }}>
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>
           <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 8 }}>
             From routes to results.
@@ -142,10 +142,10 @@ export function LandingPage() {
           Ready to coordinate the network?
         </h2>
         <div style={{ display: "flex", justifyContent: "center", gap: 14 }}>
-          <button onClick={() => navigate("/login")} style={{ background: C.coral, color: C.ivory, border: "none", padding: "14px 26px", borderRadius: 4, fontSize: 14.5, fontWeight: 600, cursor: "pointer" }}>
+          <button className="c-btn-hover" onClick={() => navigate("/login")} style={{ background: C.coral, color: C.ivory, border: "none", padding: "14px 26px", borderRadius: 4, fontSize: 14.5, fontWeight: 600, cursor: "pointer" }}>
             Open Business Portal
           </button>
-          <button onClick={() => navigate("/login")} style={{ background: "transparent", color: C.ivory, border: "1px solid rgba(250,246,239,0.3)", padding: "14px 26px", borderRadius: 4, fontSize: 14.5, fontWeight: 500, cursor: "pointer" }}>
+          <button className="c-btn-hover" onClick={() => navigate("/login")} style={{ background: "transparent", color: C.ivory, border: "1px solid rgba(250,246,239,0.3)", padding: "14px 26px", borderRadius: 4, fontSize: 14.5, fontWeight: 500, cursor: "pointer" }}>
             Admin Console
           </button>
         </div>

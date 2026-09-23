@@ -185,6 +185,7 @@ class OptimizationOrchestrator:
                     optimized_successful_order_ids.extend(route.ordered_order_ids)
             
             # 8. MATCH_RETURN_LOADS
+            opportunities = []
             rl_query = self.db.query(ReturnLoad).filter(ReturnLoad.scenario == request.scenario_id, ReturnLoad.status == 'PENDING')
             if operator_scope:
                 rl_query = rl_query.filter(ReturnLoad.operator_id == operator_scope)

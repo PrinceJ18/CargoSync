@@ -87,7 +87,7 @@ export function AppShell() {
 
   return (
     <div style={{ fontFamily: font, background: C.stone, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
-      <style>{`.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}} @media (prefers-reduced-motion: reduce) { .spin { animation: none; } }`}</style>
+      <style>{`.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
 
       {/* Top Navigation */}
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 26px", borderBottom: `1px solid ${C.stone}`, background: C.ivory, position: "sticky", top: 0, zIndex: 50 }}>

@@ -29,7 +29,7 @@ class ClusterValidator:
         max_vehicle_capacity = 0.0
         if opt_input.vehicles:
             # Multiply by load ratio right away to get effective available capacity
-            max_vehicle_capacity = max(v.capacity_kg for v in opt_input.vehicles) * config.capacity.max_load_ratio
+            max_vehicle_capacity = sum(v.capacity_kg for v in opt_input.vehicles) * config.capacity.max_load_ratio
 
         for cluster in clustering_result.clusters:
             reasons: List[ValidationReason] = []

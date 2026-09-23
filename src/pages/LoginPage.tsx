@@ -130,10 +130,9 @@ export function LoginPage() {
 function RoleCard({ icon, title, desc, features, cta, onClick, accent }: any) {
   const [hover, setHover] = useState(false);
   return (
-    <div onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{
+    <div className="c-card-hover" onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)} style={{
       border: `1px solid ${hover ? C.coral : accent ? C.coral : C.stone}`, borderRadius: 6, padding: 26,
       background: C.ivory, display: "flex", flexDirection: "column", gap: 16,
-      transform: hover ? "translateY(-3px)" : "translateY(0)", transition: "transform 0.25s ease, border-color 0.25s ease",
     }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <div style={{ width: 38, height: 38, borderRadius: 8, background: accent ? "rgba(232,84,46,0.1)" : C.stone, display: "flex", alignItems: "center", justifyContent: "center" }}>{icon}</div>

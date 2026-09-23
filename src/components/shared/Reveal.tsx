@@ -17,10 +17,8 @@ export function useReveal() {
 export const Reveal = ({ children, delay = 0 }: { children: ReactNode, delay?: number }) => {
   const [ref, shown] = useReveal();
   return (
-    <div ref={ref} style={{
-      opacity: shown ? 1 : 0,
-      transform: shown ? "translateY(0)" : "translateY(16px)",
-      transition: `opacity 0.7s ease ${delay}s, transform 0.7s ease ${delay}s`,
-    }}>{children}</div>
+    <div ref={ref} className={`c-reveal ${shown ? "shown" : ""}`} style={{ transitionDelay: delay > 0 ? `${delay}s` : undefined }}>
+      {children}
+    </div>
   );
 };

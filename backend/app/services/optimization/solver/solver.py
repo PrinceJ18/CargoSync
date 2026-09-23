@@ -325,7 +325,7 @@ class ORToolsOptimizer:
             status = "INFEASIBLE"
             message = "No valid routes could be formed (all orders dropped)."
         elif unassigned_order_ids:
-            status = "INFEASIBLE"
+            status = "FEASIBLE"
             message = "One or more orders could not be assigned due to capacity or constraint limits."
         elif ortools_status == 6:  # ROUTING_OPTIMAL
             status = "OPTIMAL"

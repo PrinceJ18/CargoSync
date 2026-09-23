@@ -12,14 +12,13 @@ interface FeatureCardProps {
 export function FeatureCard({ n, title, text, mini }: FeatureCardProps) {
   return (
     <Reveal>
-      <div style={{
+      <div 
+        className="c-card-hover"
+        style={{
         background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 4, padding: "26px 24px",
         display: "flex", flexDirection: "column", gap: 14, height: "100%",
-        transition: "transform 0.25s ease, border-color 0.25s ease",
-      }}
-        onMouseEnter={(e) => { e.currentTarget.style.transform = "translateY(-4px)"; e.currentTarget.style.borderColor = C.coral; }}
-        onMouseLeave={(e) => { e.currentTarget.style.transform = "translateY(0)"; e.currentTarget.style.borderColor = C.stone; }}
-      >
+        cursor: "default"
+      }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <span style={{ fontFamily: mono, fontSize: 12, color: C.slate }}>{n}</span>
           <div>{mini}</div>
