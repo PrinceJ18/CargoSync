@@ -8,10 +8,12 @@ import { Settings, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
 import { C, mono } from "../data/prototype/designTokens";
 import { Panel } from "../components/shared/Panel";
 import { Reveal } from "../components/shared/Reveal";
+import { useMobile } from "../hooks/useMobile";
 import type { OptimizationRunResponse } from "../types/api";
 
 export function ImpactPage() {
   const navigate = useNavigate();
+  const isMobile = useMobile();
   const [scenario, setScenario] = useState("DEMO");
   const [runData, setRunData] = useState<OptimizationRunResponse | null>(null);
   const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "success" | "error">("loading");
@@ -69,7 +71,7 @@ export function ImpactPage() {
         </div>
         <div style={{ fontSize: 13, color: C.slate, marginBottom: 20 }}>Operational savings and environmental impact for the {scenario} scenario.</div>
         
-        <div role="status" aria-label="Loading impact data" style={{ padding: 40, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, color: C.slate, gap: 10 }}>
+        <div className="fade-in" role="status" aria-label="Loading impact data" style={{ padding: 40, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, color: C.slate, gap: 10 }}>
           <Loader2 size={24} className="spin" aria-hidden="true" /> Loading impact analytics...
         </div>
       </div>
@@ -82,8 +84,8 @@ export function ImpactPage() {
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 4 }}>
           <div style={{ fontSize: 20, fontWeight: 700 }}>Impact & ROI</div>
         </div>
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, gap: 12 }}>
-          <AlertCircle size={24} color={C.red} />
+        <div className="fade-in" style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, gap: 12 }}>
+          <AlertCircle size={24} color={C.coral} />
           <div style={{ fontSize: 14, color: C.ink }}>{error}</div>
           <button onClick={fetchImpactData} style={{ background: C.ink, color: C.ivory, border: "none", padding: "8px 18px", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
             <RefreshCw size={13} /> Retry
@@ -177,7 +179,7 @@ export function ImpactPage() {
         <Reveal delay={0.2}><KpiCard label="Return Loads" value={returnLoadsMatched > 0 ? String(returnLoadsMatched) : "0"} /></Reveal>
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(2, 1fr)", gap: 20 }}>
         <Reveal delay={0.25}>
         <Panel title="Before vs After — Distance (km)">
           {distanceData.length > 0 ? (

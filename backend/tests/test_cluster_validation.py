@@ -75,12 +75,12 @@ def test_cluster_exactly_at_capacity_boundary():
     assert val.validated_clusters[0].capacity_ratio == 1.0
 
 def test_cluster_exceeding_capacity():
-    # 3. Cluster exceeding maximum vehicle capacity
+    # 3. Cluster exceeding maximum fleet capacity
     # 4. Multiple vehicles with different capacities
-    o1 = _mock_order(weight=1500)
+    o1 = _mock_order(weight=2500)
     v1 = _mock_vehicle(cap=1000)
-    v2 = _mock_vehicle(cap=1200) # Max is 1200
-    c1 = _mock_cluster(order_ids=[o1.id], weight=1500)
+    v2 = _mock_vehicle(cap=1200) # Fleet Max is 2200
+    c1 = _mock_cluster(order_ids=[o1.id], weight=2500)
     
     opt_input = OptimizationInput(scenario="DEMO", operator_id=uuid4(), depots=[OptimizationDepot(id=uuid4(), operator_id=uuid4(), name="D", latitude=0, longitude=0)], vehicles=[v1, v2], orders=[o1], source_issues=[])
     clust_res = ClusteringResult(clusters=[c1], noise_order_ids=[], unclustered_order_ids=[], total_input_orders=1, clustering_status="COMPLETED", clustered_order_count=1, noise_order_count=0, epsilon_meters=5000, min_samples=1)
@@ -88,7 +88,7 @@ def test_cluster_exceeding_capacity():
     
     val = ClusterValidator().validate(clust_res, opt_input, config)
     assert val.validated_clusters[0].validation_status == "INFEASIBLE_CAPACITY"
-    assert val.validated_clusters[0].capacity_ratio == 1500/1200
+    assert val.validated_clusters[0].capacity_ratio == 2500/2200
     assert len(val.validated_clusters[0].validation_reasons) == 1
     assert val.validated_clusters[0].validation_reasons[0].code == "CAPACITY_EXCEEDED"
 

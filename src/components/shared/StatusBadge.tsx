@@ -3,14 +3,14 @@ import { C } from "../../data/prototype/designTokens";
 export function StatusBadge({ status }: { status: string }) {
   const map: Record<string, { bg: string, c: string }> = {
     ASSIGNED: { bg: "rgba(30,143,107,0.12)", c: C.emerald },
-    REJECTED: { bg: "rgba(194,59,46,0.1)", c: C.red },
+    REJECTED: { bg: "rgba(232,84,46,0.1)", c: C.coral },
     PENDING: { bg: "rgba(201,138,27,0.12)", c: C.amber },
     SCHEDULED: { bg: "rgba(27,35,51,0.1)", c: C.navy },
     COMPLETED: { bg: "rgba(30,143,107,0.12)", c: C.emerald },
-    FAILED: { bg: "rgba(194,59,46,0.1)", c: C.red },
+    FAILED: { bg: "rgba(232,84,46,0.1)", c: C.coral },
     AVAILABLE: { bg: "rgba(30,143,107,0.12)", c: C.emerald },
     IN_TRANSIT: { bg: "rgba(27,35,51,0.1)", c: C.navy },
-    MAINTENANCE: { bg: "rgba(194,59,46,0.1)", c: C.red },
+    MAINTENANCE: { bg: "rgba(232,84,46,0.1)", c: C.coral },
     "In Transit": { bg: "rgba(201,138,27,0.12)", c: C.amber },
     Delivered: { bg: "rgba(30,143,107,0.12)", c: C.emerald },
     Pending: { bg: "rgba(138,141,150,0.14)", c: C.slate },

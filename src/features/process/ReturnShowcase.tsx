@@ -1,9 +1,11 @@
 import { C, mono } from "../../data/prototype/designTokens";
 import { Reveal } from "../../components/shared/Reveal";
+import { useMobile } from "../../hooks/useMobile";
 
 export function ReturnShowcase() {
+  const isMobile = useMobile();
   return (
-    <div style={{ display: "grid", gridTemplateColumns: "1.1fr 1fr", gap: 40, alignItems: "center" }}>
+    <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.1fr 1fr", gap: 40, alignItems: "center" }}>
       <Reveal>
         <div>
         <div style={{ fontFamily: mono, fontSize: 12, color: C.coral, marginBottom: 12 }}>TRK-IND-04 · INDORE → PITHAMPUR</div>
@@ -32,7 +34,7 @@ export function ReturnShowcase() {
       </Reveal>
       <Reveal delay={0.2}>
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        <div className="c-card-hover" style={{ background: C.cream, borderRadius: 6, padding: "18px 20px", border: `1px solid ${C.stone}`, cursor: "default" }}>
+        <div className="c-card-hover" style={{ background: C.ivory, borderRadius: 6, padding: "18px 20px", border: `1px solid ${C.stone}`, cursor: "default" }}>
           <div style={{ fontSize: 11, fontFamily: mono, color: C.slate, marginBottom: 6 }}>EMPTY RETURN</div>
           <div className="c-icon" style={{ fontSize: 22, fontWeight: 700, color: C.ink, transformOrigin: "left center" }}>36.4 km wasted</div>
           <div style={{ fontSize: 13, color: C.slate }}>Vehicle returns to depot with no cargo</div>

@@ -275,6 +275,7 @@ class TestUnauthenticated:
         from fastapi.testclient import TestClient
         from app.main import app
 
+        app.dependency_overrides.clear()
         client = TestClient(app)
         response = client.get("/api/v1/orders/")
         assert response.status_code in (401, 403)

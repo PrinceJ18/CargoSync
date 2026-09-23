@@ -101,7 +101,7 @@ export function OrdersPage() {
   // ─── LOADING ───
   if (fetchStatus === "loading" && !data) {
     return (
-      <div style={{ padding: 26, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300, color: C.slate, gap: 10, fontSize: 14 }}>
+      <div className="fade-in" style={{ padding: 26, display: "flex", alignItems: "center", justifyContent: "center", minHeight: 300, color: C.slate, gap: 10, fontSize: 14 }}>
         <Loader2 size={18} className="spin" /> Loading orders...
       </div>
     );
@@ -111,8 +111,8 @@ export function OrdersPage() {
   if (fetchStatus === "error" && error && !data) {
     const isAuthError = error.code === "UNAUTHORIZED" || error.code === "UNAUTHENTICATED";
     return (
-      <div style={{ padding: 26, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 300, gap: 12 }}>
-        <AlertCircle size={24} color={C.red} />
+      <div className="fade-in" style={{ padding: 26, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 300, gap: 12 }}>
+        <AlertCircle size={24} color={C.coral} />
         <div style={{ fontSize: 14, color: C.ink }}>{error.message}</div>
         {!isAuthError && (
           <button onClick={() => fetchOrders(1)} style={{ background: C.ink, color: C.ivory, border: "none", padding: "8px 18px", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
@@ -163,11 +163,11 @@ export function OrdersPage() {
             </div>
           )}
           {(!data?.items || data.items.length === 0) ? (
-            <div style={{ padding: 30, textAlign: "center", fontSize: 13, color: C.slate }}>
+            <div className="fade-in" style={{ padding: 30, textAlign: "center", fontSize: 13, color: C.slate }}>
               {data?.total === 0 ? (statusFilter ? "No orders match this status." : "No orders available.") : "No orders found on this page."}
             </div>
           ) : displayed.length === 0 ? (
-            <div style={{ padding: 30, textAlign: "center", fontSize: 13, color: C.slate }}>
+            <div className="fade-in" style={{ padding: 30, textAlign: "center", fontSize: 13, color: C.slate }}>
               No orders match your search.
             </div>
           ) : (

@@ -177,7 +177,7 @@ export function NetworkPage() {
         
         {error && (!orders.length && !returnLoads.length && !depots.length) ? (
           <div style={{ position: "absolute", zIndex: 1000, top: "50%", left: "50%", transform: "translate(-50%, -50%)", display: "flex", flexDirection: "column", alignItems: "center", gap: 10, fontSize: 14, color: C.ink, background: "rgba(255,255,255,0.9)", padding: "20px", borderRadius: 8, boxShadow: "0 4px 12px rgba(0,0,0,0.1)" }}>
-            <AlertCircle size={24} color={C.red} />
+            <AlertCircle size={24} color={C.coral} />
             <div style={{ textAlign: "center", maxWidth: 250 }}>{error}</div>
             <button onClick={loadData} style={{ background: C.ink, color: C.ivory, border: "none", padding: "6px 14px", borderRadius: 4, fontSize: 12.5, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
               <RefreshCw size={12} /> Retry

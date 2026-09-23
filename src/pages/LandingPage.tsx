@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { useMobile } from "../hooks/useMobile";
 import { ArrowRight, MapPin } from "lucide-react";
 import { LandingNav } from "../layouts/LandingNav";
 import { HeroNetwork } from "../features/hero/HeroNetwork";
@@ -13,6 +14,7 @@ import { C, font, mono } from "../data/prototype/designTokens";
 
 export function LandingPage() {
   const navigate = useNavigate();
+  const isMobile = useMobile();
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     const f = () => setScrolled(window.scrollY > 40);
@@ -25,8 +27,11 @@ export function LandingPage() {
       <LandingNav scrolled={scrolled} />
 
       {/* HERO */}
-      <section id="platform" style={{ padding: "150px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 0.9fr", gap: 60, alignItems: "center" }}>
+      <section id="platform" style={{ padding: isMobile ? "120px 6% 80px" : "160px 6% 120px", maxWidth: 1240, margin: "0 auto", position: "relative" }}>
+        {/* Subtle glow for hero */}
+        <div style={{ position: "absolute", top: 100, right: 0, width: 600, height: 600, background: `radial-gradient(circle, ${C.coral} 0%, transparent 70%)`, opacity: 0.04, filter: "blur(60px)", pointerEvents: "none" }} />
+        
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 0.9fr", gap: isMobile ? 40 : 60, alignItems: "center", position: "relative", zIndex: 1 }}>
           <div>
             <Reveal delay={0}>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontFamily: mono, color: C.slate, marginBottom: 22, border: `1px solid ${C.stone}`, padding: "5px 10px", borderRadius: 999 }}>
@@ -73,74 +78,82 @@ export function LandingPage() {
       </section>
 
       {/* PROBLEM -> SOLUTION: interactive before/after */}
-      <section style={{ padding: "60px 6%", maxWidth: 1240, margin: "0 auto" }}>
-        <Reveal>
-          <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", maxWidth: 640, marginBottom: 30 }}>
-            Logistics is a network problem.
-          </h2>
-        </Reveal>
-        <Reveal delay={0.1}>
-          <BeforeAfterToggle />
-        </Reveal>
+      <section style={{ borderTop: `1px solid rgba(23, 28, 43, 0.06)`, padding: "100px 6%", position: "relative" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <Reveal>
+            <h2 style={{ fontSize: "clamp(28px,3.5vw,40px)", fontWeight: 700, letterSpacing: "-0.01em", maxWidth: 640, marginBottom: 40 }}>
+              Logistics is a network problem.
+            </h2>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <BeforeAfterToggle />
+          </Reveal>
+        </div>
       </section>
 
       {/* HOW IT WORKS */}
-      <section id="how-it-works" style={{ padding: "40px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
-        <Reveal>
-          <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 30 }}>
-            How CargoSync works.
-          </h2>
-        </Reveal>
-        <ProcessSection />
+      <section id="how-it-works" style={{ borderTop: `1px solid rgba(23, 28, 43, 0.06)`, padding: "100px 6%", position: "relative" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <Reveal>
+            <h2 style={{ fontSize: "clamp(28px,3.5vw,40px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 40 }}>
+              How CargoSync works.
+            </h2>
+          </Reveal>
+          <ProcessSection />
+        </div>
       </section>
 
       {/* RETURN LOAD SHOWCASE */}
-      <section style={{ padding: "40px 6% 100px", maxWidth: 1240, margin: "0 auto" }}>
-        <Reveal>
-          <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 34 }}>
-            The return journey matters.
-          </h2>
-        </Reveal>
-        <ReturnShowcase />
+      <section style={{ background: C.cream, padding: "100px 6%", borderTop: `1px solid rgba(23, 28, 43, 0.03)` }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <Reveal>
+            <h2 style={{ fontSize: "clamp(28px,3.5vw,40px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 40 }}>
+              The return journey matters.
+            </h2>
+          </Reveal>
+          <ReturnShowcase />
+        </div>
       </section>
 
       {/* FEATURES */}
-      <section id="optimization" style={{ padding: "40px 6% 90px", maxWidth: 1240, margin: "0 auto" }}>
-        <Reveal>
-          <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 34 }}>
-            One network. Multiple advantages.
-          </h2>
-        </Reveal>
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 18 }}>
-          <FeatureCard delay={0.05} n="01" title="Shared Capacity" text="Coordinate delivery demand across multiple operators instead of routing in isolation." mini={<NetworkMini />} />
-          <FeatureCard delay={0.10} n="02" title="Geographic Clustering" text="DBSCAN groups geographically dense delivery requests into feasible service pockets." mini={<ClusterMini />} />
-          <FeatureCard delay={0.15} n="03" title="Constrained Routing" text="OR-Tools generates a feasible route considering vehicle capacity and configured constraints." mini={<RouteMini />} />
-          <FeatureCard delay={0.20} n="04" title="Return-Load Matching" text="Finds compatible cargo for the return journey, turning empty miles into revenue." mini={<ReturnMini />} />
-          <FeatureCard delay={0.25} n="05" title="Measurable Savings" text="Compares baseline independent routing against CargoSync's coordinated result." mini={<SavingsMini />} />
-          <FeatureCard delay={0.30} n="06" title="Network Visibility" text="Visualize routes, vehicles and operational impact across the entire network." mini={<CapacityMini />} />
+      <section id="optimization" style={{ padding: "100px 6%" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <Reveal>
+            <h2 style={{ fontSize: "clamp(28px,3.5vw,40px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 40 }}>
+              One network. Multiple advantages.
+            </h2>
+          </Reveal>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 18 }}>
+            <FeatureCard delay={0.05} n="01" title="Shared Capacity" text="Coordinate delivery demand across multiple operators instead of routing in isolation." mini={<NetworkMini />} />
+            <FeatureCard delay={0.10} n="02" title="Geographic Clustering" text="DBSCAN groups geographically dense delivery requests into feasible service pockets." mini={<ClusterMini />} />
+            <FeatureCard delay={0.15} n="03" title="Constrained Routing" text="OR-Tools generates a feasible route considering vehicle capacity and configured constraints." mini={<RouteMini />} />
+            <FeatureCard delay={0.20} n="04" title="Return-Load Matching" text="Finds compatible cargo for the return journey, turning empty miles into revenue." mini={<ReturnMini />} />
+            <FeatureCard delay={0.25} n="05" title="Measurable Savings" text="Compares baseline independent routing against CargoSync's coordinated result." mini={<SavingsMini />} />
+            <FeatureCard delay={0.30} n="06" title="Network Visibility" text="Visualize routes, vehicles and operational impact across the entire network." mini={<CapacityMini />} />
+          </div>
         </div>
       </section>
 
       {/* IMPACT */}
-      <section id="impact" style={{ padding: "40px 6% 100px", background: C.cream }}>
+      <section id="impact" style={{ background: C.cream, padding: "100px 6%", borderTop: `1px solid rgba(23, 28, 43, 0.03)` }}>
         <div style={{ maxWidth: 1240, margin: "0 auto" }}>
           <Reveal>
-            <h2 style={{ fontSize: "clamp(26px,3vw,36px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 8 }}>
+            <h2 style={{ fontSize: "clamp(28px,3.5vw,40px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 12 }}>
               From routes to results.
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
-            <div style={{ fontSize: 12, fontFamily: mono, color: C.slate, marginBottom: 30 }}>DEMO SCENARIO · ILLUSTRATIVE VALUES</div>
+            <div style={{ fontSize: 13, fontFamily: mono, color: C.slate, marginBottom: 40 }}>DEMO SCENARIO · ILLUSTRATIVE VALUES</div>
           </Reveal>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 14 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(6, 1fr)", gap: 14 }}>
             {[
               { l: "Distance", v: "-23%" }, { l: "Cost", v: "-27%" }, { l: "Utilization", v: "77%" },
               { l: "Empty Returns", v: "-61%" }, { l: "Return Loads", v: "8" }, { l: "Est. CO₂", v: "-18%" },
             ].map((m, i) => (
               <Reveal key={m.l} delay={0.15 + (i * 0.05)}>
-                <div className="c-card-hover" style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 4, padding: "18px 14px", height: "100%", cursor: "default" }}>
-                  <div className="c-icon" style={{ fontSize: 22, fontWeight: 700, transformOrigin: "left center" }}>{m.v}</div>
-                  <div style={{ fontSize: 11.5, color: C.slate, marginTop: 4 }}>{m.l}</div>
+                <div className="c-card-hover" style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: "20px 16px", height: "100%", cursor: "default" }}>
+                  <div className="c-icon" style={{ fontSize: 26, fontWeight: 700, transformOrigin: "left center" }}>{m.v}</div>
+                  <div style={{ fontSize: 12, color: C.slate, marginTop: 6 }}>{m.l}</div>
                 </div>
               </Reveal>
             ))}
@@ -149,23 +162,25 @@ export function LandingPage() {
       </section>
 
       {/* TECH FOUNDATION */}
-      <section style={{ padding: "70px 6%", maxWidth: 1240, margin: "0 auto" }}>
-        <Reveal>
-          <h2 style={{ fontSize: "clamp(22px,2.6vw,30px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 18 }}>
-            Built for real logistics constraints.
-          </h2>
-        </Reveal>
-        <Reveal delay={0.1}>
-          <p style={{ fontSize: 14.5, color: "#4B4E58", maxWidth: 620, lineHeight: 1.6, marginBottom: 22 }}>
-            Geographic clustering, capacity constraints, road-network routing, shared logistics coordination and return-load matching — engineered on infrastructure built for it.
-          </p>
-        </Reveal>
-        <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-          {["React", "FastAPI", "Supabase", "PostGIS", "DBSCAN", "OR-Tools", "OSRM", "Leaflet"].map((t, i) => (
-            <Reveal key={t} delay={0.2 + (i * 0.05)}>
-              <span style={{ fontSize: 12, fontFamily: mono, color: C.ink, border: `1px solid ${C.stone}`, padding: "6px 12px", borderRadius: 999, display: "inline-block" }}>{t}</span>
-            </Reveal>
-          ))}
+      <section style={{ padding: "100px 6%" }}>
+        <div style={{ maxWidth: 1240, margin: "0 auto" }}>
+          <Reveal>
+            <h2 style={{ fontSize: "clamp(24px,3vw,34px)", fontWeight: 700, letterSpacing: "-0.01em", marginBottom: 20 }}>
+              Built for real logistics constraints.
+            </h2>
+          </Reveal>
+          <Reveal delay={0.1}>
+            <p style={{ fontSize: 15, color: "#4B4E58", maxWidth: 640, lineHeight: 1.6, marginBottom: 28 }}>
+              Geographic clustering, capacity constraints, road-network routing, shared logistics coordination and return-load matching — engineered on infrastructure built for it.
+            </p>
+          </Reveal>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            {["React", "FastAPI", "Supabase", "PostGIS", "DBSCAN", "OR-Tools", "OSRM", "Leaflet"].map((t, i) => (
+              <Reveal key={t} delay={0.2 + (i * 0.05)}>
+                <span className="c-card-hover" style={{ fontSize: 12.5, fontFamily: mono, color: C.ink, border: `1px solid ${C.stone}`, padding: "8px 16px", borderRadius: 999, display: "inline-block", background: C.ivory }}>{t}</span>
+              </Reveal>
+            ))}
+          </div>
         </div>
       </section>
 

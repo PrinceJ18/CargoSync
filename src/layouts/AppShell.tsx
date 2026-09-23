@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Outlet, useLocation, useNavigate, Link } from "react-router-dom";
-import { Search, Bell, Navigation, ChevronDown, Menu, X } from "lucide-react";
+import { Search, Bell, ChevronDown, Menu, X } from "lucide-react";
 import { C, font, mono } from "../data/prototype/designTokens";
 import { supabase } from "../lib/supabase/client";
 import { useAuth } from "../contexts/AuthContext";
@@ -98,11 +98,19 @@ export function AppShell() {
                 {mobileNavOpen ? <X size={20} color={C.slate} /> : <Menu size={20} color={C.slate} />}
               </button>
             )}
-            <Link to="/app/overview" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "inherit" }}>
-              <div style={{ width: 20, height: 20, borderRadius: 5, background: C.coral, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <Navigation size={11} color={C.ivory} strokeWidth={2.5} />
-              </div>
-              <span style={{ fontWeight: 700, fontSize: 13.5 }}>CargoSync</span>
+            <Link to="/app/overview" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "inherit" }} aria-label="CargoSync">
+              <img 
+                src="/src/assets/branding/CargoSync_Logo.png" 
+                alt="" 
+                style={{ width: 22, height: 22, objectFit: "contain" }} 
+              />
+              {!isMobile && (
+                <img 
+                  src="/src/assets/branding/CargoSync_name_tagline.png" 
+                  alt="CargoSync" 
+                  style={{ height: 20, objectFit: "contain" }} 
+                />
+              )}
             </Link>
           </div>
 
@@ -123,16 +131,20 @@ export function AppShell() {
             </div>
           )}
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          <button aria-label="Search" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-            <Search size={16} color={C.slate} />
-          </button>
-          <button aria-label="Notifications" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
-            <Bell size={16} color={C.slate} />
-          </button>
-          <div style={{ fontSize: 11, fontFamily: mono, color: C.emerald, display: "flex", alignItems: "center", gap: 5 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.emerald }} /> LIVE
-          </div>
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 10 : 16 }}>
+          {!isMobile && (
+            <>
+              <button aria-label="Search" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+                <Search size={16} color={C.slate} />
+              </button>
+              <button aria-label="Notifications" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
+                <Bell size={16} color={C.slate} />
+              </button>
+              <div style={{ fontSize: 11, fontFamily: mono, color: C.emerald, display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.emerald }} /> LIVE
+              </div>
+            </>
+          )}
           <div style={{ position: "relative" }} ref={menuRef}>
             <button 
               className="c-btn-hover"
@@ -154,7 +166,7 @@ export function AppShell() {
                 {["Profile", "Settings", "Workspace"].map((m) => (
                   <button role="menuitem" key={m} style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, cursor: "pointer", background: "none", border: "none" }}>{m}</button>
                 ))}
-                <button role="menuitem" onClick={handleLogout} style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, cursor: "pointer", color: C.red, borderTop: `1px solid ${C.stone}`, background: "none", borderLeft: "none", borderRight: "none", borderBottom: "none" }}>Sign out</button>
+                <button role="menuitem" onClick={handleLogout} style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, cursor: "pointer", color: C.coral, borderTop: `1px solid ${C.stone}`, background: "none", borderLeft: "none", borderRight: "none", borderBottom: "none" }}>Sign out</button>
               </div>
             )}
           </div>

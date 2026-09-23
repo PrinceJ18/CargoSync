@@ -1,6 +1,6 @@
 import { useNavigate, Link } from "react-router-dom";
-import { Navigation } from "lucide-react";
 import { C } from "../data/prototype/designTokens";
+import { useMobile } from "../hooks/useMobile";
 
 interface LandingNavProps {
   scrolled: boolean;
@@ -8,6 +8,7 @@ interface LandingNavProps {
 
 export function LandingNav({ scrolled }: LandingNavProps) {
   const navigate = useNavigate();
+  const isMobile = useMobile();
   const navItems = [
     { label: "Platform", id: "platform" },
     { label: "How it Works", id: "how-it-works" },
@@ -37,35 +38,49 @@ export function LandingNav({ scrolled }: LandingNavProps) {
       boxShadow: scrolled ? "0 4px 20px rgba(0,0,0,0.15)" : "0 8px 32px rgba(235,93,61,0.12)",
       transition: "all 0.3s ease",
     }}>
-      <Link to="/" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none" }}>
-        <div style={{ width: 22, height: 22, borderRadius: 6, background: C.coral, display: "flex", alignItems: "center", justifyContent: "center" }}>
-          <Navigation size={13} color={C.ivory} strokeWidth={2.5} />
-        </div>
-        <span style={{ color: C.ivory, fontWeight: 600, fontSize: 14, letterSpacing: "-0.01em" }}>CargoSync AI</span>
+      <Link to="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }} aria-label="CargoSync">
+        <img 
+          src="/src/assets/branding/CargoSync_Logo.png" 
+          alt="" 
+          style={{ width: 26, height: 26, objectFit: "contain" }} 
+        />
+        {!isMobile && (
+          <img 
+            src="/src/assets/branding/CargoSync_name_tagline.png" 
+            alt="CargoSync" 
+            style={{ height: 24, objectFit: "contain" }} 
+          />
+        )}
       </Link>
-      <div style={{ display: "flex", gap: 26 }}>
-        {navItems.map((it) => (
-          <button 
-            key={it.label} 
-            onClick={() => handleScroll(it.id)}
-            className="c-link-hover"
-            style={{ 
-              color: "rgba(250,246,239,0.72)", 
-              fontSize: 13.5, 
-              cursor: "pointer",
-              background: "none",
-              border: "none",
-              padding: 0,
-              fontFamily: "inherit"
-            }}
-          >
-            {it.label}
-          </button>
-        ))}
-      </div>
+      {!isMobile && (
+        <div style={{ display: "flex", gap: 26 }}>
+          {navItems.map((it) => (
+            <button 
+              key={it.label} 
+              onClick={() => handleScroll(it.id)}
+              className="c-link-hover"
+              style={{ 
+                color: "rgba(250,246,239,0.72)", 
+                fontSize: 13.5, 
+                cursor: "pointer",
+                background: "none",
+                border: "none",
+                padding: 0,
+                fontFamily: "inherit"
+              }}
+            >
+              {it.label}
+            </button>
+          ))}
+        </div>
+      )}
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-        <Link to="/login" className="c-link-hover" style={{ color: "rgba(250,246,239,0.7)", fontSize: 13, textDecoration: "none" }}>Business Portal</Link>
-        <Link to="/login" className="c-link-hover" style={{ color: "rgba(250,246,239,0.7)", fontSize: 13, textDecoration: "none" }}>Admin Console</Link>
+        {!isMobile && (
+          <>
+            <Link to="/login" className="c-link-hover" style={{ color: "rgba(250,246,239,0.7)", fontSize: 13, textDecoration: "none" }}>Business Portal</Link>
+            <Link to="/login" className="c-link-hover" style={{ color: "rgba(250,246,239,0.7)", fontSize: 13, textDecoration: "none" }}>Admin Console</Link>
+          </>
+        )}
         <button className="c-btn-primary" onClick={() => navigate("/login")} style={{
           background: C.coral, color: C.ivory, border: "none", borderRadius: 999,
           padding: "9px 18px", fontSize: 13.5, fontWeight: 600, cursor: "pointer",

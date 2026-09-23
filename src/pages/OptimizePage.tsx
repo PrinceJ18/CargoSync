@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { C, mono } from "../data/prototype/designTokens";
 import { useMobile } from "../hooks/useMobile";
 import { Panel } from "../components/shared/Panel";
+import { Reveal } from "../components/shared/Reveal";
 import { ResultComparison } from "../features/process/ResultComparison";
 import type { OptimizationRunResponse } from "../types/api";
 
@@ -123,7 +124,7 @@ export function OptimizePage() {
         </Panel>
         <Panel title="Pipeline Execution">
           {running ? (
-            <div role="status" aria-label="Optimization Running" style={{ display: "flex", flexDirection: "column", gap: 14, padding: "10px 0" }}>
+            <div className="fade-in" role="status" aria-label="Optimization Running" style={{ display: "flex", flexDirection: "column", gap: 14, padding: "10px 0" }}>
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
                 <RefreshCw size={18} color={C.coral} className="spin" aria-hidden="true" />
                 <div style={{ fontSize: 14, color: C.ink, fontWeight: 600 }}>Optimization engine running...</div>
@@ -141,22 +142,26 @@ export function OptimizePage() {
               </div>
             </div>
           ) : loadingLatest ? (
-            <div role="status" aria-label="Loading latest run" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", color: C.slate, fontSize: 13 }}>
+            <div className="fade-in" role="status" aria-label="Loading latest run" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", color: C.slate, fontSize: 13 }}>
               <RefreshCw size={14} className="spin" aria-hidden="true" /> Loading latest run data...
             </div>
           ) : result ? (
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: C.ink, fontWeight: 600 }}>
-                {result.status === "COMPLETED" ? <CheckCircle2 size={18} color={C.emerald} /> : <AlertTriangle size={18} color={result.status === "PARTIAL" ? "#B58500" : C.coral} />}
-                Optimization {result.status === "COMPLETED" ? "Successful" : result.status === "PARTIAL" ? "Partially Successful" : "Failed"}
-              </div>
+            <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+              <Reveal delay={0}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: C.ink, fontWeight: 600 }}>
+                  {result.status === "COMPLETED" ? <CheckCircle2 size={18} color={C.emerald} /> : <AlertTriangle size={18} color={result.status === "PARTIAL" ? "#B58500" : C.coral} />}
+                  Optimization {result.status === "COMPLETED" ? "Successful" : result.status === "PARTIAL" ? "Partially Successful" : "Failed"}
+                </div>
+              </Reveal>
               
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 12.5 }}>
-                <div><span style={{ color: C.slate }}>Run ID:</span> <span style={{ fontFamily: mono }}>{result.run_id?.slice(0,8) || "—"}</span></div>
-                <div><span style={{ color: C.slate }}>Scenario:</span> {result.scenario || "—"}</div>
-                <div><span style={{ color: C.slate }}>Solver Status:</span> <span style={{ fontWeight: 600, color: result.solver_status === "OPTIMAL" ? C.emerald : result.solver_status ? C.coral : C.ink }}>{result.solver_status || "—"}</span></div>
-                <div><span style={{ color: C.slate }}>Routes Generated:</span> {result.routes?.length ?? "—"}</div>
-              </div>
+              <Reveal delay={0.1}>
+                <div className="c-card-hover" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 12.5, background: C.ivory, padding: 14, borderRadius: 6, border: `1px solid ${C.stone}` }}>
+                  <div><span style={{ color: C.slate }}>Run ID:</span> <span style={{ fontFamily: mono }}>{result.run_id?.slice(0,8) || "—"}</span></div>
+                  <div><span style={{ color: C.slate }}>Scenario:</span> {result.scenario || "—"}</div>
+                  <div><span style={{ color: C.slate }}>Solver Status:</span> <span style={{ fontWeight: 600, color: result.solver_status === "OPTIMAL" ? C.emerald : result.solver_status ? C.coral : C.ink }}>{result.solver_status || "—"}</span></div>
+                  <div><span style={{ color: C.slate }}>Routes Generated:</span> {result.routes?.length ?? "—"}</div>
+                </div>
+              </Reveal>
 
               {result.status === "COMPLETED" && (
                 <button 
@@ -169,20 +174,22 @@ export function OptimizePage() {
               )}
 
               {result.diagnostics && result.diagnostics.length > 0 && (
-                <div style={{ marginTop: 8 }}>
-                  <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: C.slate }}>Diagnostics Output</div>
-                  <div style={{ background: C.cream, padding: 12, borderRadius: 6, fontSize: 11.5, fontFamily: mono, color: C.slate, maxHeight: 160, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
-                    {result.diagnostics.map((d, i) => (
-                      <div key={i}><span style={{ color: d.level === "ERROR" ? C.coral : d.level === "WARNING" ? "#B58500" : C.slate }}>[{d.level}]</span> {d.message}</div>
-                    ))}
+                <Reveal delay={0.2}>
+                  <div style={{ marginTop: 8 }}>
+                    <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: C.slate }}>Diagnostics Output</div>
+                    <div style={{ background: C.cream, padding: 12, borderRadius: 6, fontSize: 11.5, fontFamily: mono, color: C.slate, maxHeight: 160, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
+                      {result.diagnostics.map((d, i) => (
+                        <div key={i}><span style={{ color: d.level === "ERROR" ? C.coral : d.level === "WARNING" ? "#B58500" : C.slate }}>[{d.level}]</span> {d.message}</div>
+                      ))}
+                    </div>
                   </div>
-                </div>
+                </Reveal>
               )}
             </div>
           ) : error ? (
-             <div style={{ color: C.coral, fontSize: 13, background: "rgba(194,59,46,0.1)", padding: 12, borderRadius: 4 }}>{error}</div>
+             <div className="fade-in" style={{ color: C.coral, fontSize: 13, background: "rgba(232,84,46,0.1)", padding: 12, borderRadius: 4 }}>{error}</div>
           ) : (
-             <div style={{ fontSize: 13, color: C.slate }}>No optimization runs found for this scenario. Ready to run.</div>
+             <div className="fade-in" style={{ fontSize: 13, color: C.slate }}>No optimization runs found for this scenario. Ready to run.</div>
           )}
         </Panel>
       </div>

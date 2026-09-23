@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { C, mono } from "../../data/prototype/designTokens";
+import { useMobile } from "../../hooks/useMobile";
 
 export function BeforeAfterToggle() {
   const [after, setAfter] = useState(false);
+  const isMobile = useMobile();
   
   return (
     <div>
@@ -17,7 +19,7 @@ export function BeforeAfterToggle() {
       <div style={{ background: after ? C.navy : C.cream, borderRadius: 6, padding: "34px 30px", transition: "background 0.5s ease", minHeight: 220 }}>
         <div key={after ? 'after' : 'before'} className="fade-in">
           {!after ? (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 16 }}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(3, 1fr)", gap: 16 }}>
               {["Operator A", "Operator B", "Operator C"].map((name, i) => (
                 <div key={name} className="c-card-hover" style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 4, padding: "16px", cursor: "default" }}>
                   <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>{name}</div>

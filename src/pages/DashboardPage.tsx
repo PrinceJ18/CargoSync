@@ -85,8 +85,8 @@ export function DashboardPage() {
 
   if (fetchStatus === "error") {
     return (
-      <div style={{ padding: 26, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, gap: 12 }}>
-        <AlertCircle size={24} color={C.red} />
+      <div className="fade-in" style={{ padding: 26, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", minHeight: 400, gap: 12 }}>
+        <AlertCircle size={24} color={C.coral} />
         <div style={{ fontSize: 14, color: C.ink }}>{pageError}</div>
         <button onClick={fetchDashboardData} style={{ background: C.ink, color: C.ivory, border: "none", padding: "8px 18px", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
           <RefreshCw size={13} /> Retry
@@ -118,7 +118,7 @@ export function DashboardPage() {
         </div>
         <div style={{ position: "relative" }}>
           {fetchStatus === "loading" && (
-            <div role="status" aria-label="Loading map data" style={{ position: "absolute", inset: 0, background: "rgba(250,246,239,0.5)", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <div className="fade-in" role="status" aria-label="Loading map data" style={{ position: "absolute", inset: 0, background: "rgba(250,246,239,0.5)", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
               <Loader2 size={24} color={C.slate} className="spin" aria-hidden="true" />
             </div>
           )}

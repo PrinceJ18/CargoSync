@@ -2,10 +2,12 @@ import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Building2, ShieldCheck } from "lucide-react";
 import { C, font, mono } from "../data/prototype/designTokens";
+import { useMobile } from "../hooks/useMobile";
 import { supabase } from "../lib/supabase/client";
 
 export function LoginPage() {
   const navigate = useNavigate();
+  const isMobile = useMobile();
   const [mode, setMode] = useState<"select" | "business" | "admin">("select");
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
@@ -57,7 +59,7 @@ export function LoginPage() {
           <Link to="/" style={{ fontSize: 14, fontWeight: 600, color: C.ink, textDecoration: "none", marginBottom: 18, display: "block" }}>← CargoSync AI</Link>
           <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.01em" }}>Choose your workspace</h1>
         </div>
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, width: "min(94%, 760px)" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 18, width: "min(94%, 760px)" }}>
           <RoleCard icon={<Building2 size={20} color={C.coral} />} title="Business / Operator" desc="Manage your logistics operations." features={["Orders & vehicles", "Routes & optimization", "Shared-capacity opportunities"]} cta="Continue as Business" onClick={() => setMode("business")} accent />
           <RoleCard icon={<ShieldCheck size={20} color={C.navy} />} title="Admin" desc="Manage the CargoSync network." features={["All operators & orders", "Optimization & results", "Network-wide analytics"]} cta="Continue as Admin" onClick={() => setMode("admin")} />
         </div>
@@ -67,7 +69,7 @@ export function LoginPage() {
 
   const isBiz = mode === "business";
   return (
-    <div className="fade-in" style={{ minHeight: "100vh", background: isBiz ? C.ivory : C.ink, fontFamily: font, display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+    <div className="fade-in" style={{ minHeight: "100vh", background: isBiz ? C.ivory : C.ink, fontFamily: font, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr" }}>
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 8%", background: isBiz ? C.navy : C.ink, color: C.ivory }}>
         <button aria-label="Go back to workspace selection" onClick={() => setMode("select")} style={{ fontSize: 13, color: "rgba(250,246,239,0.6)", cursor: "pointer", marginBottom: 26, background: "none", border: "none", padding: 0, textAlign: "left" }}>← Back</button>
         <div style={{ fontSize: 12, fontFamily: mono, color: isBiz ? C.peach : C.slate, marginBottom: 14 }}>
@@ -82,7 +84,7 @@ export function LoginPage() {
         <div style={{ fontSize: 13, color: C.slate, marginBottom: 26 }}>{isSignUp ? "Create a new account." : "Sign in to continue."}</div>
         
         {error && (
-          <div style={{ padding: "10px 14px", background: "rgba(194,59,46,0.1)", color: C.red, borderRadius: 4, fontSize: 13, marginBottom: 16 }}>
+          <div className="fade-in" style={{ padding: "10px 14px", background: "rgba(232,84,46,0.1)", color: C.coral, borderRadius: 4, fontSize: 13, marginBottom: 16, border: `1px solid rgba(232,84,46,0.2)` }}>
             {error}
           </div>
         )}
@@ -159,16 +161,10 @@ function RoleCard({ icon, title, desc, features, cta, onClick, accent }: any) {
 }
 
 function RoleMicroBusiness({ animate }: { animate: boolean }) {
-  const [x, setX] = useState(0);
-  useEffect(() => {
-    if (!animate) { setX(0); return; }
-    const iv = setInterval(() => setX((v) => (v + 1) % 24), 60);
-    return () => clearInterval(iv);
-  }, [animate]);
   return (
     <svg width="56" height="20" viewBox="0 0 56 20">
       <line x1="2" y1="14" x2="54" y2="14" stroke={C.stone} strokeWidth="1.5" />
-      <rect x={4 + x} y="4" width="10" height="8" rx="1.5" fill={C.coral} />
+      <rect x="4" y="4" width="10" height="8" rx="1.5" fill={C.coral} style={{ transition: "transform 0.4s ease", transform: animate ? "translateX(36px)" : "translateX(0)" }} />
     </svg>
   );
 }

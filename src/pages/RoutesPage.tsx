@@ -296,7 +296,7 @@ export function RoutesPage() {
   if (fetchStatus === "error") {
     return (
       <div style={{ padding: 26, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", height: "calc(100vh - 60px)", gap: 12 }}>
-        <AlertCircle size={24} color={C.red} />
+        <AlertCircle size={24} color={C.coral} />
         <div style={{ fontSize: 14, color: C.ink }}>{error || "Failed to load route data."}</div>
         <button onClick={() => setScenario(scenario)} style={{ background: C.ink, color: C.ivory, border: "none", padding: "8px 18px", borderRadius: 4, fontSize: 13, fontWeight: 600, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
           <RefreshCw size={13} /> Retry
