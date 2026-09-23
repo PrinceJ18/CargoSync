@@ -38,7 +38,21 @@ export function LandingNav({ scrolled }: LandingNavProps) {
       boxShadow: scrolled ? "0 4px 20px rgba(0,0,0,0.15)" : "0 8px 32px rgba(235,93,61,0.12)",
       transition: "all 0.3s ease",
     }}>
-      <Link to="/" style={{ display: "flex", alignItems: "center", gap: 10, textDecoration: "none" }} aria-label="CargoSync">
+      <Link 
+        to="/" 
+        style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          gap: 10, 
+          textDecoration: "none",
+          background: C.ivory,
+          padding: "6px 14px 6px 8px",
+          borderRadius: 999,
+          boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
+          marginLeft: -10
+        }} 
+        aria-label="CargoSync"
+      >
         <img 
           src="/src/assets/branding/CargoSync_Logo.png" 
           alt="" 

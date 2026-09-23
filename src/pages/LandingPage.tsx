@@ -38,7 +38,7 @@ export function LandingPage() {
                 <MapPin size={12} color={C.coral} /> INDORE NETWORK · MADHYA PRADESH
               </div>
               <h1 style={{ fontSize: "clamp(38px, 5vw, 62px)", fontWeight: 700, lineHeight: 1.04, letterSpacing: "-0.02em", margin: 0 }}>
-                Move cargo.<br />Not empty miles.
+                Smarter Logistics.<br />Fewer Empty Miles.
               </h1>
             </Reveal>
             <Reveal delay={0.1}>
@@ -206,7 +206,7 @@ export function LandingPage() {
 
       {/* FOOTER */}
       <footer style={{ padding: "40px 6%", background: C.ink, borderTop: "1px solid rgba(250,246,239,0.08)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
-        <span style={{ color: C.ivory, fontSize: 13.5, fontWeight: 600 }}>CargoSync AI</span>
+        <img src="/src/assets/branding/CargoSync_name_tagline.png" alt="CargoSync" style={{ height: 20, objectFit: "contain" }} />
         <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
           {["Platform", "How it Works", "Optimization", "Impact", "Business Portal", "Admin Console"].map((t) => (
             <span key={t} style={{ color: "rgba(250,246,239,0.55)", fontSize: 12.5 }}>{t}</span>

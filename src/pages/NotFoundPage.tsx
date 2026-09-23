@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Navigation } from "lucide-react";
+
 import { C, font } from "../data/prototype/designTokens";
 
 export function NotFoundPage() {
@@ -8,7 +8,7 @@ export function NotFoundPage() {
   return (
     <div style={{ minHeight: "100vh", background: C.ivory, fontFamily: font, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24, textAlign: "center" }}>
       <div style={{ width: 48, height: 48, borderRadius: 12, background: C.coral, display: "flex", alignItems: "center", justifyContent: "center", marginBottom: 24 }}>
-        <Navigation size={24} color={C.ivory} strokeWidth={2.5} />
+        <img src="/src/assets/branding/CargoSync_Logo.png" alt="CargoSync" style={{ width: 28, height: 28, objectFit: "contain" }} />
       </div>
       <h1 style={{ fontSize: 36, fontWeight: 700, letterSpacing: "-0.01em", color: C.ink, marginBottom: 12 }}>Page not found</h1>
       <p style={{ fontSize: 16, color: C.slate, maxWidth: 400, lineHeight: 1.6, marginBottom: 32 }}>

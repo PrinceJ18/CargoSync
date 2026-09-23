@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Building2, ShieldCheck } from "lucide-react";
-import { C, font, mono } from "../data/prototype/designTokens";
+import { C, font } from "../data/prototype/designTokens";
 import { useMobile } from "../hooks/useMobile";
 import { supabase } from "../lib/supabase/client";
 
@@ -71,13 +71,12 @@ export function LoginPage() {
   return (
     <div className="fade-in" style={{ minHeight: "100vh", background: isBiz ? C.ivory : C.ink, fontFamily: font, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr" }}>
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 8%", background: isBiz ? C.navy : C.ink, color: C.ivory }}>
-        <button aria-label="Go back to workspace selection" onClick={() => setMode("select")} style={{ fontSize: 13, color: "rgba(250,246,239,0.6)", cursor: "pointer", marginBottom: 26, background: "none", border: "none", padding: 0, textAlign: "left" }}>← Back</button>
-        <div style={{ fontSize: 12, fontFamily: mono, color: isBiz ? C.peach : C.slate, marginBottom: 14 }}>
-          {isBiz ? "FOR LOGISTICS OPERATORS" : "FOR CARGOSYNC ADMINISTRATORS"}
-        </div>
-        <h2 style={{ fontSize: 32, fontWeight: 700, letterSpacing: "-0.01em", maxWidth: 360, lineHeight: 1.15 }}>
-          {isBiz ? "Your logistics network, coordinated." : "Network-wide logistics intelligence."}
-        </h2>
+        <button aria-label="Go back to workspace selection" onClick={() => setMode("select")} style={{ fontSize: 13, color: "rgba(250,246,239,0.6)", cursor: "pointer", marginBottom: 32, background: "none", border: "none", padding: 0, textAlign: "left" }}>← Back</button>
+        <img 
+          src="/src/assets/branding/CargoSync_Banner_TransparentBg.png" 
+          alt="CargoSync — Smarter Logistics. Fewer Empty Miles." 
+          style={{ width: "100%", maxWidth: 380, objectFit: "contain" }} 
+        />
       </div>
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 10%", background: C.ivory }}>
         <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>{isBiz ? "Business Portal" : "Admin Console"}</div>
