@@ -66,7 +66,7 @@ export function LandingNav({ scrolled }: LandingNavProps) {
       <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
         <Link to="/login" className="c-link-hover" style={{ color: "rgba(250,246,239,0.7)", fontSize: 13, textDecoration: "none" }}>Business Portal</Link>
         <Link to="/login" className="c-link-hover" style={{ color: "rgba(250,246,239,0.7)", fontSize: 13, textDecoration: "none" }}>Admin Console</Link>
-        <button className="c-btn-hover" onClick={() => navigate("/login")} style={{
+        <button className="c-btn-primary" onClick={() => navigate("/login")} style={{
           background: C.coral, color: C.ivory, border: "none", borderRadius: 999,
           padding: "9px 18px", fontSize: 13.5, fontWeight: 600, cursor: "pointer",
         }}>Enter Platform</button>

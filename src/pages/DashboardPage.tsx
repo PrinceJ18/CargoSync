@@ -3,6 +3,7 @@ import { Package, Truck, Gauge, TrendingDown, RefreshCw, CheckCircle2, AlertCirc
 import { C, mono } from "../data/prototype/designTokens";
 import { MetricCard } from "../components/shared/MetricCard";
 import { Panel } from "../components/shared/Panel";
+import { Reveal } from "../components/shared/Reveal";
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { NetworkMap } from "../features/map/NetworkMap";
 import { useAuth } from "../contexts/AuthContext";
@@ -126,21 +127,23 @@ export function DashboardPage() {
 
         {/* Entity KPI Cards */}
         <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(5, 1fr)", gap: 12, marginTop: 16, opacity: fetchStatus === "loading" ? 0.6 : 1 }}>
-          <MetricCard icon={<Package size={14} color={C.slate} />} label="Orders" value={totals ? totals.orders.toString() : "\u2014"} sub={totals ? `${totals.depots} depots` : "\u2014"} />
-          <MetricCard icon={<Truck size={14} color={C.slate} />} label="Vehicles" value={totals ? totals.fleet.toString() : "\u2014"} sub="active" />
-          <MetricCard icon={<Gauge size={14} color={C.slate} />} label="Avg Utilization" value={metrics ? `${metrics.utilization_pct}%` : "\u2014"} />
-          <MetricCard icon={<TrendingDown size={14} color={C.coral} />} label="Distance Saved" value={distSavedKm !== null ? `${distSavedKm} km` : "\u2014"} accent />
-          <MetricCard icon={<RefreshCw size={14} color={C.slate} />} label="Return Loads" value={totals ? totals.returnLoads.toString() : "\u2014"} />
+          <Reveal delay={0}><MetricCard icon={<Package size={14} color={C.slate} />} label="Orders" value={totals ? totals.orders.toString() : "\u2014"} sub={totals ? `${totals.depots} depots` : "\u2014"} /></Reveal>
+          <Reveal delay={0.05}><MetricCard icon={<Truck size={14} color={C.slate} />} label="Vehicles" value={totals ? totals.fleet.toString() : "\u2014"} sub="active" /></Reveal>
+          <Reveal delay={0.1}><MetricCard icon={<Gauge size={14} color={C.slate} />} label="Avg Utilization" value={metrics ? `${metrics.utilization_pct}%` : "\u2014"} /></Reveal>
+          <Reveal delay={0.15}><MetricCard icon={<TrendingDown size={14} color={C.coral} />} label="Distance Saved" value={distSavedKm !== null ? `${distSavedKm} km` : "\u2014"} accent /></Reveal>
+          <Reveal delay={0.2}><MetricCard icon={<RefreshCw size={14} color={C.slate} />} label="Return Loads" value={totals ? totals.returnLoads.toString() : "\u2014"} /></Reveal>
         </div>
 
         {/* Optimization Savings — only if real data exists */}
         {hasOptimization && optMetrics?.savings && (
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginTop: 12 }}>
-            <MiniStat icon={<Route size={13} color={C.navy} />} label="Routes" value={routeCount.toString()} />
-            <MiniStat icon={<TrendingDown size={13} color={C.coral} />} label="Distance Saved" value={distSavedKm !== null ? `${distSavedKm} km` : "\u2014"} />
-            <MiniStat icon={<IndianRupee size={13} color={C.emerald} />} label="Cost Saved" value={costSaved !== null ? `\u20B9${Math.round(costSaved).toLocaleString("en-IN")}` : "\u2014"} />
-            <MiniStat icon={<Leaf size={13} color={C.emerald} />} label="CO\u2082 Saved" value={co2Saved !== null ? `${co2Saved.toFixed(1)} kg` : "\u2014"} />
-          </div>
+          <Reveal delay={0.25}>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginTop: 12 }}>
+              <MiniStat icon={<Route size={13} color={C.navy} />} label="Routes" value={routeCount.toString()} />
+              <MiniStat icon={<TrendingDown size={13} color={C.coral} />} label="Distance Saved" value={distSavedKm !== null ? `${distSavedKm} km` : "\u2014"} />
+              <MiniStat icon={<IndianRupee size={13} color={C.emerald} />} label="Cost Saved" value={costSaved !== null ? `\u20B9${Math.round(costSaved).toLocaleString("en-IN")}` : "\u2014"} />
+              <MiniStat icon={<Leaf size={13} color={C.emerald} />} label="CO\u2082 Saved" value={co2Saved !== null ? `${co2Saved.toFixed(1)} kg` : "\u2014"} />
+            </div>
+          </Reveal>
         )}
       </div>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -216,7 +219,7 @@ export function DashboardPage() {
 /** Small stat card for optimization savings row */
 function MiniStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: "10px 12px" }}>
+    <div className="c-card-hover" style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: "10px 12px" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
         {icon}
         <span style={{ fontSize: 10.5, color: C.slate }}>{label}</span>

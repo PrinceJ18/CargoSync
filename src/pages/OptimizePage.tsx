@@ -102,6 +102,7 @@ export function OptimizePage() {
           </div>
           
           <button 
+            className="c-btn-primary"
             onClick={run} 
             disabled={running} 
             style={{ 
@@ -159,6 +160,7 @@ export function OptimizePage() {
 
               {result.status === "COMPLETED" && (
                 <button 
+                  className="c-btn-hover"
                   onClick={handleViewRoutes}
                   style={{ background: C.ink, color: C.ivory, border: "none", padding: "8px 16px", borderRadius: 4, fontWeight: 600, fontSize: 12.5, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8 }}
                 >

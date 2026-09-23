@@ -111,11 +111,12 @@ export function AppShell() {
               {NAV_ITEMS.map((item) => {
                 const isActive = location.pathname === item.path || (item.path !== "/app/overview" && location.pathname.startsWith(item.path + "/"));
                 return (
-                  <Link key={item.label} to={item.path} style={{
-                    background: isActive ? C.stone : "transparent",
+                  <Link key={item.label} to={item.path} className="c-btn-hover" style={{
+                    background: isActive ? C.navy : "transparent",
                     border: "none", textDecoration: "none",
                     padding: "7px 13px", borderRadius: 6, fontSize: 13, fontWeight: 500,
-                    color: isActive ? C.ink : "#5B5E68",
+                    color: isActive ? C.ivory : "#5B5E68",
+                    boxShadow: isActive ? "0 4px 12px rgba(27,35,51,0.15)" : "none",
                   }}>{item.label}</Link>
                 );
               })}
@@ -134,6 +135,7 @@ export function AppShell() {
           </div>
           <div style={{ position: "relative" }} ref={menuRef}>
             <button 
+              className="c-btn-hover"
               aria-label="User menu"
               aria-expanded={menu}
               aria-haspopup="true"
@@ -161,15 +163,16 @@ export function AppShell() {
 
       {/* Mobile Nav Overlay */}
       {isMobile && mobileNavOpen && (
-        <div style={{ position: "fixed", inset: "54px 0 0 0", zIndex: 40, background: C.ivory, borderTop: `1px solid ${C.stone}`, padding: "20px 26px", display: "flex", flexDirection: "column", gap: 10, overflowY: "auto" }}>
+        <div className="fade-in" style={{ position: "fixed", inset: "54px 0 0 0", zIndex: 40, background: C.ivory, borderTop: `1px solid ${C.stone}`, padding: "20px 26px", display: "flex", flexDirection: "column", gap: 10, overflowY: "auto" }}>
           {NAV_ITEMS.map((item) => {
             const isActive = location.pathname === item.path || (item.path !== "/app/overview" && location.pathname.startsWith(item.path + "/"));
             return (
-              <Link key={item.label} to={item.path} onClick={() => setMobileNavOpen(false)} style={{
-                background: isActive ? C.stone : "transparent",
+              <Link key={item.label} to={item.path} className="c-btn-hover" onClick={() => setMobileNavOpen(false)} style={{
+                background: isActive ? C.navy : "transparent",
                 border: "none", textDecoration: "none",
                 padding: "10px 16px", borderRadius: 6, fontSize: 14, fontWeight: 600,
-                color: isActive ? C.ink : "#5B5E68",
+                color: isActive ? C.ivory : "#5B5E68",
+                boxShadow: isActive ? "0 4px 12px rgba(27,35,51,0.15)" : "none",
               }}>{item.label}</Link>
             );
           })}
@@ -178,7 +181,9 @@ export function AppShell() {
 
       {/* Page content outlet */}
       <main style={{ flex: 1, minHeight: 0 }}>
-        <Outlet />
+        <div key={location.pathname} className="fade-in" style={{ height: "100%", display: "flex", flexDirection: "column" }}>
+          <Outlet />
+        </div>
       </main>
     </div>
   );

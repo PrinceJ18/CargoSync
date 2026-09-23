@@ -52,7 +52,7 @@ export function LoginPage() {
 
   if (mode === "select") {
     return (
-      <div style={{ minHeight: "100vh", background: C.ivory, fontFamily: font, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
+      <div className="fade-in" style={{ minHeight: "100vh", background: C.ivory, fontFamily: font, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: 24 }}>
         <div style={{ marginBottom: 40, textAlign: "center" }}>
           <Link to="/" style={{ fontSize: 14, fontWeight: 600, color: C.ink, textDecoration: "none", marginBottom: 18, display: "block" }}>← CargoSync AI</Link>
           <h1 style={{ fontSize: 30, fontWeight: 700, letterSpacing: "-0.01em" }}>Choose your workspace</h1>
@@ -67,7 +67,7 @@ export function LoginPage() {
 
   const isBiz = mode === "business";
   return (
-    <div style={{ minHeight: "100vh", background: isBiz ? C.ivory : C.ink, fontFamily: font, display: "grid", gridTemplateColumns: "1fr 1fr" }}>
+    <div className="fade-in" style={{ minHeight: "100vh", background: isBiz ? C.ivory : C.ink, fontFamily: font, display: "grid", gridTemplateColumns: "1fr 1fr" }}>
       <div style={{ display: "flex", flexDirection: "column", justifyContent: "center", padding: "60px 8%", background: isBiz ? C.navy : C.ink, color: C.ivory }}>
         <button aria-label="Go back to workspace selection" onClick={() => setMode("select")} style={{ fontSize: 13, color: "rgba(250,246,239,0.6)", cursor: "pointer", marginBottom: 26, background: "none", border: "none", padding: 0, textAlign: "left" }}>← Back</button>
         <div style={{ fontSize: 12, fontFamily: mono, color: isBiz ? C.peach : C.slate, marginBottom: 14 }}>
@@ -106,6 +106,7 @@ export function LoginPage() {
         />
         
         <button 
+          className="c-btn-primary"
           onClick={handleAuth} 
           disabled={loading}
           style={{
@@ -149,7 +150,7 @@ function RoleCard({ icon, title, desc, features, cta, onClick, accent }: any) {
           </div>
         ))}
       </div>
-      <button onClick={onClick} style={{
+      <button className="c-btn-primary" onClick={onClick} style={{
         marginTop: "auto", background: accent ? C.coral : C.ink, color: C.ivory, border: "none",
         padding: "11px", borderRadius: 4, fontSize: 13.5, fontWeight: 600, cursor: "pointer",
       }}>{cta}</button>

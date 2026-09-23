@@ -183,6 +183,7 @@ export function OrdersPage() {
                 {displayed.map((o) => (
                   <tr 
                     key={o.id} 
+                    className="c-table-row"
                     onClick={() => setSelected(o)} 
                     onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(o); } }}
                     tabIndex={0}
@@ -227,7 +228,7 @@ export function OrdersPage() {
 
         {/* Detail Panel */}
         {selected && (
-          <div style={
+          <div className="fade-in" style={
             isMobile
               ? { position: "fixed", inset: 0, zIndex: 100, background: C.ivory, padding: 26, overflowY: "auto", border: "none", borderRadius: 0 }
               : { background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: 18, alignSelf: "start", position: "sticky", top: 70 }

@@ -7,6 +7,7 @@ import { useNavigate } from "react-router-dom";
 import { Settings, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
 import { C, mono } from "../data/prototype/designTokens";
 import { Panel } from "../components/shared/Panel";
+import { Reveal } from "../components/shared/Reveal";
 import type { OptimizationRunResponse } from "../types/api";
 
 export function ImpactPage() {
@@ -169,14 +170,15 @@ export function ImpactPage() {
 
       {/* KPI Cards */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 24 }}>
-        <KpiCard label="Distance Saved" value={metrics?.savings?.distance_saved_meters != null ? `${(metrics.savings.distance_saved_meters / 1000).toFixed(1)} km` : "—"} highlight={C.emerald} />
-        <KpiCard label="Cost Saved" value={metrics?.savings?.cost_saved_inr != null ? `₹${metrics.savings.cost_saved_inr.toLocaleString()}` : "—"} highlight={C.emerald} />
-        <KpiCard label="CO₂ Avoided" value={metrics?.savings?.co2_saved_kg != null ? `${metrics.savings.co2_saved_kg.toFixed(1)} kg` : "—"} highlight={C.emerald} />
-        <KpiCard label="Vehicles Reduced" value={vehRedPct != null ? `${vehRedPct.toFixed(1)}%` : "—"} />
-        <KpiCard label="Return Loads" value={returnLoadsMatched > 0 ? String(returnLoadsMatched) : "0"} />
+        <Reveal delay={0}><KpiCard label="Distance Saved" value={metrics?.savings?.distance_saved_meters != null ? `${(metrics.savings.distance_saved_meters / 1000).toFixed(1)} km` : "—"} highlight={C.emerald} /></Reveal>
+        <Reveal delay={0.05}><KpiCard label="Cost Saved" value={metrics?.savings?.cost_saved_inr != null ? `₹${metrics.savings.cost_saved_inr.toLocaleString()}` : "—"} highlight={C.emerald} /></Reveal>
+        <Reveal delay={0.1}><KpiCard label="CO₂ Avoided" value={metrics?.savings?.co2_saved_kg != null ? `${metrics.savings.co2_saved_kg.toFixed(1)} kg` : "—"} highlight={C.emerald} /></Reveal>
+        <Reveal delay={0.15}><KpiCard label="Vehicles Reduced" value={vehRedPct != null ? `${vehRedPct.toFixed(1)}%` : "—"} /></Reveal>
+        <Reveal delay={0.2}><KpiCard label="Return Loads" value={returnLoadsMatched > 0 ? String(returnLoadsMatched) : "0"} /></Reveal>
       </div>
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 20 }}>
+        <Reveal delay={0.25}>
         <Panel title="Before vs After — Distance (km)">
           {distanceData.length > 0 ? (
             <div role="img" aria-label={`Bar chart comparing baseline distance ${distanceData[0].value}km and optimized distance ${distanceData[1].value}km`}>
@@ -201,7 +203,9 @@ export function ImpactPage() {
             </div>
           )}
         </Panel>
+        </Reveal>
 
+        <Reveal delay={0.3}>
         <Panel title="Before vs After — Fleet Size (Vehicles)">
           {vehicleData.length > 0 ? (
             <div role="img" aria-label={`Bar chart comparing baseline vehicles ${vehicleData[0].value} and optimized vehicles ${vehicleData[1].value}`}>
@@ -226,6 +230,7 @@ export function ImpactPage() {
             </div>
           )}
         </Panel>
+        </Reveal>
       </div>
 
     </div>
@@ -234,7 +239,7 @@ export function ImpactPage() {
 
 function KpiCard({ label, value, highlight }: { label: string; value: string; highlight?: string }) {
   return (
-    <div style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: "16px 20px" }}>
+    <div className="c-card-hover" style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: "16px 20px" }}>
       <div style={{ fontSize: 11, color: C.slate, marginBottom: 8, textTransform: "uppercase", letterSpacing: 0.5 }}>{label}</div>
       <div style={{ fontSize: 24, fontWeight: 700, color: highlight || C.ink, fontFamily: mono }}>{value}</div>
     </div>

@@ -7,7 +7,7 @@ export function NetworkMap({ compact }: { compact?: boolean }) {
     { x: 340, y: 320 }, { x: 130, y: 300 }, { x: 60, y: 200 },
   ];
   return (
-    <svg viewBox="0 0 520 380" style={{ width: "100%", height: compact ? 260 : 420, background: C.cream, borderRadius: 6 }}>
+    <svg className="c-card-hover" viewBox="0 0 520 380" style={{ width: "100%", height: compact ? 260 : 420, background: C.cream, borderRadius: 6, border: `1px solid ${C.stone}` }}>
       <rect x="0" y="0" width="520" height="380" fill={C.cream} rx="6" />
       {stops.map((s, i) => (
         <line key={i} x1={depot.x} y1={depot.y} x2={s.x} y2={s.y} stroke={s.active ? C.coral : C.stone} strokeWidth={s.active ? 2 : 1} strokeDasharray={s.active ? "0" : "4 4"} />

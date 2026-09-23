@@ -62,13 +62,16 @@ export function HeroNetwork() {
         <path ref={retRef} d={pathReturn} fill="none" stroke="none" />
 
         <path d={pathAB} fill="none" stroke={routeDrawn ? C.coral : C.stone} strokeWidth={routeDrawn ? 2 : 1.2}
-          strokeDasharray={routeDrawn ? "0" : "4 5"} style={{ transition: "stroke 0.5s, stroke-width 0.5s" }} />
+          strokeDasharray={routeDrawn ? "4" : "4 5"} className={routeDrawn ? "route-flow" : ""}
+          style={{ transition: "stroke 0.5s, stroke-width 0.5s" }} />
         {showReturn && (
           <path d={pathReturn} fill="none" stroke={returnHighlighted ? C.coral : C.slate} strokeWidth={returnHighlighted ? 2 : 1.2}
-            strokeDasharray={returnHighlighted ? "0" : "3 5"} opacity={returnHighlighted ? 0.9 : 0.5} />
+            strokeDasharray={returnHighlighted ? "4 4" : "3 5"} opacity={returnHighlighted ? 0.9 : 0.5} 
+            className={returnHighlighted ? "route-flow" : ""} />
         )}
 
         <circle cx={depot.x} cy={depot.y} r="7" fill={C.navy} />
+        <circle cx={depot.x} cy={depot.y} r="14" fill={C.navy} opacity="0.1" className="node-pulse" />
         <text x={depot.x - 8} y={depot.y + 22} fontSize="9" fontFamily={mono} fill={C.slate}>DEPOT</text>
 
         {orders.map((o) => {
@@ -77,17 +80,20 @@ export function HeroNetwork() {
           const cy = grouped ? target.y + (o.y - target.y) * 0.15 : o.y;
           const isNoise = !o.cluster;
           return (
-            <circle key={o.id} cx={cx} cy={cy} r={isNoise ? 3 : 4}
-              fill={isNoise ? "none" : grouped ? C.coral : C.ivory}
-              stroke={isNoise ? C.slate : C.navy} strokeOpacity={isNoise ? 0.4 : 1} strokeWidth="1.2"
-              style={{ transition: "cx 0.9s ease, cy 0.9s ease, fill 0.5s" }} />
+            <g key={o.id} style={{ transition: "transform 0.9s ease" }} transform={`translate(${cx}, ${cy})`}>
+              <circle r={isNoise ? 3 : 4}
+                fill={isNoise ? "none" : grouped ? C.coral : C.ivory}
+                stroke={isNoise ? C.slate : C.navy} strokeOpacity={isNoise ? 0.4 : 1} strokeWidth="1.2"
+                style={{ transition: "fill 0.5s" }} />
+              {grouped && !isNoise && <circle r="8" fill={C.coral} opacity="0.1" className="node-pulse" />}
+            </g>
           );
         })}
 
         {stageIdx >= 2 && (
           <g style={{ transition: "transform 0.05s linear" }} transform={`translate(${truckPos.x},${truckPos.y})`}>
             <circle r="7" fill={C.coral} />
-            <circle r="13" fill={C.coral} opacity="0.15" />
+            <circle className="node-pulse" r="13" fill={C.coral} opacity="0.15" />
           </g>
         )}
       </svg>

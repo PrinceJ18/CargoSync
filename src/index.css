@@ -13,7 +13,14 @@
 }
 .c-card-hover:hover {
   transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(0,0,0,0.06);
+  border-color: rgba(232, 84, 46, 0.3) !important;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.06), 0 0 0 1px rgba(232, 84, 46, 0.1);
+}
+.c-icon {
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.c-card-hover:hover .c-icon {
+  transform: translateY(-2px) scale(1.05);
 }
 
 .c-btn-hover {
@@ -25,6 +32,32 @@
 }
 .c-btn-hover:active {
   transform: translateY(0px);
+}
+
+.c-btn-primary {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.c-btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(232, 84, 46, 0.35);
+  opacity: 0.95;
+}
+.c-btn-primary:active {
+  transform: translateY(0px);
+  box-shadow: 0 4px 12px rgba(232, 84, 46, 0.2);
+}
+
+.c-btn-secondary {
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.2s cubic-bezier(0.4, 0, 0.2, 1), color 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.c-btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(232, 84, 46, 0.1);
+  border-color: rgba(232, 84, 46, 0.5) !important;
+}
+.c-btn-secondary:active {
+  transform: translateY(0px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .c-link-hover {
@@ -44,13 +77,35 @@
   transform: translateY(0);
 }
 
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.fade-in {
+  animation: fadeIn 0.4s cubic-bezier(0.2, 0.8, 0.2, 1) forwards;
+}
+
+.c-table-row {
+  transition: background-color 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.c-table-row:hover {
+  background-color: #F8F4EC !important; /* Slightly darker than ivory, same as cream */
+}
+
+@keyframes flow-dash {
+  to { stroke-dashoffset: -20; }
+}
+.route-flow {
+  animation: flow-dash 1s linear infinite;
+}
+
 /* ACCESSIBILITY: REDUCED MOTION */
 @media (prefers-reduced-motion: reduce) {
-  .spin { animation: none !important; }
-  .c-card-hover, .c-btn-hover, .c-link-hover, .c-reveal {
+  .spin, .ambient-glow, .fade-in, .route-flow, .node-pulse { animation: none !important; }
+  .c-card-hover, .c-btn-hover, .c-btn-primary, .c-btn-secondary, .c-link-hover, .c-reveal, .c-table-row {
     transition: none !important;
   }
-  .c-card-hover:hover, .c-btn-hover:hover {
+  .c-card-hover:hover, .c-btn-hover:hover, .c-btn-primary:hover, .c-btn-secondary:hover {
     transform: none !important;
     box-shadow: none !important;
   }
@@ -58,4 +113,28 @@
     opacity: 1 !important;
     transform: none !important;
   }
+}
+
+/* HERO NETWORK AMBIENT GLOW */
+@keyframes ambientPulse {
+  0% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+  50% { transform: translate(-50%, -50%) scale(1.05); opacity: 0.8; }
+  100% { transform: translate(-50%, -50%) scale(1); opacity: 0.5; }
+}
+.ambient-glow {
+  animation: ambientPulse 8s ease-in-out infinite;
+  pointer-events: none;
+}
+
+/* HERO NETWORK NODE PULSE */
+@keyframes nodePulse {
+  0% { r: 13px; opacity: 0.15; }
+  50% { r: 18px; opacity: 0.3; }
+  100% { r: 13px; opacity: 0.15; }
+}
+.node-pulse {
+  animation: nodePulse 2s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .node-pulse { animation: none !important; r: 13px !important; opacity: 0.15 !important; }
 }

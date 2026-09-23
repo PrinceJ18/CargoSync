@@ -16,6 +16,6 @@ export function StatusBadge({ status }: { status: string }) {
     Pending: { bg: "rgba(138,141,150,0.14)", c: C.slate },
   };
   const s = map[status] || { bg: C.stone, c: C.slate };
-  return <span style={{ fontSize: 10.5, fontWeight: 600, background: s.bg, color: s.c, padding: "3px 8px", borderRadius: 999 }}>{status}</span>;
+  return <span style={{ fontSize: 10.5, fontWeight: 600, background: s.bg, color: s.c, padding: "3px 8px", borderRadius: 999, border: `1px solid ${s.c}33` }}>{status}</span>;
 }
 

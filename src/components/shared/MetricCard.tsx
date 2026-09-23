@@ -11,7 +11,7 @@ interface MetricCardProps {
 
 export function MetricCard({ icon, label, value, sub, accent }: MetricCardProps) {
   return (
-    <div style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
+    <div className="c-card-hover" style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: "16px 18px", display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
         <span style={{ fontSize: 11.5, color: C.slate, fontWeight: 500 }}>{label}</span>
         {icon}

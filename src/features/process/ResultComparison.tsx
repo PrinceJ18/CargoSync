@@ -17,13 +17,13 @@ export function ResultComparison({ result }: { result: OptimizationRunResponse }
     <div>
       <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 12 }}>Optimization Metrics</div>
       <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 20 }}>
-        <div style={{ background: C.cream, borderRadius: 6, padding: 18, border: `1px solid ${C.stone}` }}>
+        <div className="c-card-hover" style={{ background: C.cream, borderRadius: 6, padding: 18, border: `1px solid ${C.stone}` }}>
           <div style={{ fontSize: 11, fontFamily: mono, color: C.slate, marginBottom: 10 }}>BASELINE</div>
           <Row l="Total Distance" v={m.baseline?.distance_meters != null ? `${(m.baseline.distance_meters / 1000).toFixed(1)} km` : "Not available"} />
           <Row l="Vehicles Used" v={m.baseline?.vehicles_used?.toString() || "Not available"} />
           <Row l="Total Duration" v={m.baseline?.duration_seconds != null ? `${(m.baseline.duration_seconds / 3600).toFixed(1)} hrs` : "Not available"} />
         </div>
-        <div style={{ background: C.navy, borderRadius: 6, padding: 18 }}>
+        <div className="c-card-hover" style={{ background: C.navy, borderRadius: 6, padding: 18, border: `1px solid ${C.charcoal}` }}>
           <div style={{ fontSize: 11, fontFamily: mono, color: C.peach, marginBottom: 10 }}>CARGOSYNC OPTIMIZED</div>
           <Row l="Total Distance" v={m.optimized?.distance_meters != null ? `${(m.optimized.distance_meters / 1000).toFixed(1)} km` : "Not available"} light coral />
           <Row l="Vehicles Used" v={m.optimized?.vehicles_used?.toString() || "Not available"} light />
@@ -31,7 +31,7 @@ export function ResultComparison({ result }: { result: OptimizationRunResponse }
         </div>
       </div>
       
-      <div style={{ marginTop: 20, background: C.ivory, borderRadius: 6, padding: 18, border: `1px solid ${C.stone}` }}>
+      <div className="c-card-hover" style={{ marginTop: 20, background: C.ivory, borderRadius: 6, padding: 18, border: `1px solid ${C.stone}` }}>
         <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 12 }}>Savings & Operational Impact</div>
         <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 16 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>

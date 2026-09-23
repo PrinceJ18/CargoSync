@@ -7,11 +7,12 @@ interface FeatureCardProps {
   title: string;
   text: string;
   mini: ReactNode;
+  delay?: number;
 }
 
-export function FeatureCard({ n, title, text, mini }: FeatureCardProps) {
+export function FeatureCard({ n, title, text, mini, delay = 0 }: FeatureCardProps) {
   return (
-    <Reveal>
+    <Reveal delay={delay}>
       <div 
         className="c-card-hover"
         style={{
@@ -21,7 +22,7 @@ export function FeatureCard({ n, title, text, mini }: FeatureCardProps) {
       }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
           <span style={{ fontFamily: mono, fontSize: 12, color: C.slate }}>{n}</span>
-          <div>{mini}</div>
+          <div className="c-icon">{mini}</div>
         </div>
         <div>
           <div style={{ fontSize: 15.5, fontWeight: 600, color: C.ink, marginBottom: 6, letterSpacing: "-0.01em" }}>{title}</div>
