@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
-import { X, Loader2, AlertCircle, RefreshCw, ChevronLeft, ChevronRight } from "lucide-react";
+import { X, Loader2, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { C, mono } from "../data/prototype/designTokens";
 import { StatusBadge } from "../components/shared/StatusBadge";
-import { Row } from "../components/shared/Row";
+
 import { useAuth } from "../contexts/AuthContext";
 import { useMobile } from "../hooks/useMobile";
 import type { Vehicle, PaginatedResponse } from "../types/api";
+import { AdminVehiclesPage } from "./AdminVehiclesPage";
 
 const PAGE_SIZE = 20;
 const VEHICLE_STATUSES = ["AVAILABLE", "IN_TRANSIT", "MAINTENANCE"] as const;
@@ -13,6 +14,10 @@ const VEHICLE_STATUSES = ["AVAILABLE", "IN_TRANSIT", "MAINTENANCE"] as const;
 export function FleetPage() {
   const { profile } = useAuth();
   const isAdmin = profile?.role === 'ADMIN';
+
+  if (isAdmin) {
+    return <AdminVehiclesPage />;
+  }
 
   // Filters
   const [q, setQ] = useState("");
@@ -127,134 +132,179 @@ export function FleetPage() {
   const pages = data?.pages ?? 1;
 
   return (
-    <div style={{ padding: 26 }}>
+    <div className="fade-in" style={{ padding: isMobile ? 16 : 32, maxWidth: 1200, margin: "0 auto", width: "100%" }}>
       {/* Header */}
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Fleet</div>
-      <div style={{ fontSize: 13, color: C.slate, marginBottom: 16 }}>
-        {isAdmin ? "All network vehicles" : `${profile?.operator_name || "Operator"} vehicles`}
-        {" · "}{total.toLocaleString()} total{statusFilter ? ` · filtered by ${statusFilter}` : ""}
-      </div>
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
+          <div>
+            <div style={{ fontSize: 24, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em", marginBottom: 8 }}>
+              My Vehicles
+            </div>
+            <div style={{ fontSize: 14.5, color: C.slate, maxWidth: 650, lineHeight: 1.5 }}>
+              Manage the vehicles and capacity available to your operation. Your fleet provides the capacity CargoSync uses to build feasible, coordinated routes.
+            </div>
+          </div>
+        </div>
+          
+          <div style={{ display: "flex", gap: 24, alignItems: "center", borderBottom: `1px solid ${C.stone}`, paddingBottom: 16 }}>
+             <div style={{ display: "flex", flexDirection: "column" }}>
+               <span style={{ fontSize: 11, fontWeight: 700, color: C.slate, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Total Vehicles</span>
+               <span style={{ fontSize: 22, fontWeight: 700, fontFamily: mono, color: C.ink }}>{total.toLocaleString()}</span>
+             </div>
+          </div>
+        </div>
 
-      {/* Filters */}
-      <div style={{ display: "flex", gap: 10, marginBottom: 16, flexWrap: "wrap", alignItems: "center" }}>
-        <input
-          aria-label="Search fleet"
-          placeholder="Search registration, operator, depot..."
-          value={q} onChange={(e) => setQ(e.target.value)}
-          style={{ ...selectStyle, flex: "1 1 220px", minWidth: 200 }}
-        />
-        <select aria-label="Filter by status" value={statusFilter} onChange={(e) => handleStatusChange(e.target.value)} disabled={fetchStatus === "loading"} style={selectStyle}>
-          <option value="">All Statuses</option>
-          {VEHICLE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
-        </select>
-        <select aria-label="Select Scenario" value={scenario} onChange={(e) => handleScenarioChange(e.target.value)} disabled={fetchStatus === "loading"} style={selectStyle}>
-          <option value="DEMO">DEMO - Regional Network</option>
-          <option value="NETWORK">NETWORK - Extended Operations</option>
-        </select>
-        {fetchStatus === "loading" && data && <Loader2 size={14} color={C.slate} className="spin" aria-hidden="true" />}
-      </div>
+        {/* Toolbar */}
+        <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap", alignItems: "center", background: C.ivory, padding: 12, borderRadius: 8, border: `1px solid ${C.stone}` }}>
+          <div style={{ flex: "1 1 240px", minWidth: 200, display: "flex", alignItems: "center", background: C.stone, borderRadius: 6, padding: "0 10px", gap: 8 }}>
+             <Search size={14} color={C.slate} />
+             <input
+               aria-label="Search fleet"
+               placeholder="Search by Registration, Type..."
+               value={q} onChange={(e) => setQ(e.target.value)}
+               style={{ background: "transparent", border: "none", outline: "none", fontSize: 13, padding: "8px 0", width: "100%", color: C.ink }}
+             />
+          </div>
+          <select aria-label="Filter by status" value={statusFilter} onChange={(e) => handleStatusChange(e.target.value)} disabled={fetchStatus === "loading"} style={{ padding: "8px 12px", borderRadius: 6, border: `1px solid ${C.stone}`, fontSize: 13, background: C.cream, color: C.ink, fontWeight: 500, cursor: "pointer", outline: "none" }}>
+            <option value="">All Statuses</option>
+            {VEHICLE_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
+          <select aria-label="Select Scenario" value={scenario} onChange={(e) => handleScenarioChange(e.target.value)} disabled={fetchStatus === "loading"} style={{ padding: "8px 12px", borderRadius: 6, border: `1px solid ${C.stone}`, fontSize: 13, background: C.cream, color: C.ink, fontWeight: 500, cursor: "pointer", outline: "none" }}>
+            <option value="DEMO">Indore Regional Operations</option>
+            <option value="NETWORK">Extended Network Operations</option>
+          </select>
+          {fetchStatus === "loading" && data && <Loader2 size={16} color={C.slate} className="spin" aria-hidden="true" style={{ marginLeft: "auto" }} />}
+        </div>
 
-      {/* Table + Detail */}
-      <div style={{ display: isMobile ? "flex" : "grid", flexDirection: "column", gridTemplateColumns: selected && !isMobile ? "1fr 340px" : "1fr", gap: 16 }}>
-        <div style={{ flex: 1, background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, overflowX: "auto", position: "relative", minWidth: 0 }}>
-          {fetchStatus === "loading" && data && (
-            <div role="status" aria-label="Loading fleet" style={{ position: "absolute", inset: 0, background: "rgba(250, 246, 239, 0.6)", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Loader2 size={24} color={C.slate} className="spin" aria-hidden="true" />
-            </div>
-          )}
-          {(!data?.items || data.items.length === 0) ? (
-            <div className="fade-in" style={{ padding: 30, textAlign: "center", fontSize: 13, color: C.slate }}>
-              {data?.total === 0 ? (statusFilter ? "No vehicles match this status." : "No vehicles available.") : "No vehicles found on this page."}
-            </div>
-          ) : displayed.length === 0 ? (
-            <div className="fade-in" style={{ padding: 30, textAlign: "center", fontSize: 13, color: C.slate }}>
-              No vehicles match your search.
-            </div>
-          ) : (
-            <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12.5 }}>
-              <thead>
-                <tr style={{ background: C.cream, textAlign: "left" }}>
-                  {["Registration", "Operator", "Depot", "Capacity", "Status"].map((h) => (
-                    <th key={h} style={{ padding: "10px 14px", fontWeight: 600, color: C.slate, fontSize: 11 }}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {displayed.map((v) => (
-                  <tr 
-                    key={v.id} 
-                    className="c-table-row"
-                    onClick={() => setSelected(v)} 
-                    onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(v); } }}
-                    tabIndex={0}
-                    role="button"
-                    aria-pressed={selected?.id === v.id}
-                    style={{ borderTop: `1px solid ${C.stone}`, cursor: "pointer", background: selected?.id === v.id ? C.cream : "transparent" }}
-                  >
-                    <td style={{ padding: "10px 14px", fontFamily: mono, fontWeight: 500 }}>{v.reference_number || v.id.slice(0, 8)}</td>
-                    <td style={{ padding: "10px 14px" }}>{v.operator?.name || "—"}</td>
-                    <td style={{ padding: "10px 14px" }}>{v.depot?.name || "—"}</td>
-                    <td style={{ padding: "10px 14px" }}>{v.capacity_kg} kg</td>
-                    <td style={{ padding: "10px 14px" }}><StatusBadge status={v.status} /></td>
+        {/* Layout: Table + Side Panel */}
+        <div style={{ display: isMobile ? "flex" : "grid", flexDirection: "column", gridTemplateColumns: selected && !isMobile ? "1fr 360px" : "1fr", gap: 20 }}>
+          {/* Table Container */}
+          <div style={{ flex: 1, background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 8, overflowX: "auto", position: "relative", minWidth: 0, boxShadow: "0 1px 3px rgba(0,0,0,0.02)" }}>
+            {fetchStatus === "loading" && data && (
+              <div role="status" aria-label="Loading fleet" style={{ position: "absolute", inset: 0, background: "rgba(250, 246, 239, 0.6)", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                <Loader2 size={24} color={C.navy} className="spin" aria-hidden="true" />
+              </div>
+            )}
+            
+            {(!data?.items || data.items.length === 0) ? (
+              <div className="fade-in" style={{ padding: 40, textAlign: "center", fontSize: 14, color: C.slate }}>
+                {data?.total === 0 ? (statusFilter ? "No vehicles match this status." : "No vehicles available in this scenario.") : "No vehicles found on this page."}
+              </div>
+            ) : displayed.length === 0 ? (
+              <div className="fade-in" style={{ padding: 40, textAlign: "center", fontSize: 14, color: C.slate }}>
+                No vehicles match your search criteria.
+              </div>
+            ) : (
+              <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 13 }}>
+                <thead>
+                  <tr style={{ background: "rgba(27,35,51,0.02)", textAlign: "left", borderBottom: `1px solid ${C.stone}` }}>
+                    {["Registration", "Type", "Depot", "Capacity", "Status"].map((h) => (
+                      <th key={h} style={{ padding: "14px 16px", fontWeight: 600, color: C.slate, fontSize: 11.5, letterSpacing: "0.02em", textTransform: "uppercase" }}>{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          )}
+                </thead>
+                <tbody>
+                  {displayed.map((v) => (
+                    <tr 
+                      key={v.id} 
+                      className="c-table-row"
+                      onClick={() => setSelected(v)} 
+                      onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelected(v); } }}
+                      tabIndex={0}
+                      role="button"
+                      aria-pressed={selected?.id === v.id}
+                      style={{ borderBottom: `1px solid ${C.stone}`, cursor: "pointer", background: selected?.id === v.id ? "rgba(30,143,107,0.04)" : "transparent", transition: "background 0.2s" }}
+                    >
+                      <td style={{ padding: "14px 16px", fontFamily: mono, fontWeight: 600, color: C.ink }}>{v.reference_number || v.id.slice(0, 8)}</td>
+                      <td style={{ padding: "14px 16px", color: C.ink }}>{v.vehicle_type || "TRUCK"}</td>
+                      <td style={{ padding: "14px 16px", color: C.ink }}>{v.depot?.name || "—"}</td>
+                      <td style={{ padding: "14px 16px", color: C.ink }}>{v.capacity_kg} kg</td>
+                      <td style={{ padding: "14px 16px" }}><StatusBadge status={v.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
 
-          {/* Pagination */}
-          {pages > 1 && (
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "10px 14px", borderTop: `1px solid ${C.stone}`, fontSize: 12, color: C.slate }}>
-              <span>Page {page} of {pages} · {total.toLocaleString()} vehicles</span>
-              <div style={{ display: "flex", gap: 4 }} role="navigation" aria-label="Pagination">
-                <PageBtn aria-label="Previous Page" disabled={page <= 1 || fetchStatus === "loading"} onClick={() => handlePageChange(page - 1)}><ChevronLeft size={14} /></PageBtn>
-                {Array.from({ length: Math.min(pages, 7) }, (_, i) => {
-                  let p: number;
-                  if (pages <= 7) { p = i + 1; }
-                  else if (page <= 4) { p = i + 1; }
-                  else if (page >= pages - 3) { p = pages - 6 + i; }
-                  else { p = page - 3 + i; }
-                  return (
-                    <PageBtn aria-label={`Page ${p}`} key={p} active={p === page} disabled={fetchStatus === "loading"} onClick={() => handlePageChange(p)}>{p}</PageBtn>
-                  );
-                })}
-                <PageBtn aria-label="Next Page" disabled={page >= pages || fetchStatus === "loading"} onClick={() => handlePageChange(page + 1)}><ChevronRight size={14} /></PageBtn>
+            {/* Pagination */}
+            {pages > 1 && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 16px", background: "rgba(27,35,51,0.01)", borderTop: `1px solid ${C.stone}`, fontSize: 12.5, color: C.slate }}>
+                <span>Page <strong style={{color:C.ink}}>{page}</strong> of {pages}</span>
+                <div style={{ display: "flex", gap: 6 }} role="navigation" aria-label="Pagination">
+                  <PageBtn aria-label="Previous Page" disabled={page <= 1 || fetchStatus === "loading"} onClick={() => handlePageChange(page - 1)}><ChevronLeft size={16} /></PageBtn>
+                  {Array.from({ length: Math.min(pages, 5) }, (_, i) => {
+                    let p: number;
+                    if (pages <= 5) { p = i + 1; }
+                    else if (page <= 3) { p = i + 1; }
+                    else if (page >= pages - 2) { p = pages - 4 + i; }
+                    else { p = page - 2 + i; }
+                    return (
+                      <PageBtn aria-label={`Page ${p}`} key={p} active={p === page} disabled={fetchStatus === "loading"} onClick={() => handlePageChange(p)}>{p}</PageBtn>
+                    );
+                  })}
+                  <PageBtn aria-label="Next Page" disabled={page >= pages || fetchStatus === "loading"} onClick={() => handlePageChange(page + 1)}><ChevronRight size={16} /></PageBtn>
+                </div>
+              </div>
+            )}
+          </div>
+
+          {/* Business Details Panel */}
+          {selected && (
+            <div className="fade-in" style={
+              isMobile
+                ? { position: "fixed", inset: 0, zIndex: 100, background: C.ivory, padding: 24, overflowY: "auto", border: "none", borderRadius: 0 }
+                : { background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 8, padding: 24, alignSelf: "start", position: "sticky", top: 80, boxShadow: "0 4px 20px rgba(0,0,0,0.04)" }
+            }>
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 20 }}>
+                <div>
+                  <div style={{ fontSize: 11, fontWeight: 700, color: C.slate, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 4 }}>Vehicle Details</div>
+                  <div style={{ fontFamily: mono, fontWeight: 700, fontSize: 18, color: C.ink }}>{selected.reference_number || selected.id.slice(0, 12)}</div>
+                </div>
+                <button aria-label="Close details" onClick={() => setSelected(null)} style={{ background: "rgba(27,35,51,0.04)", border: "none", cursor: "pointer", padding: 6, borderRadius: 6, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                  <X size={16} color={C.slate} />
+                </button>
+              </div>
+              
+              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 16, borderBottom: `1px solid ${C.stone}` }}>
+                  <span style={{ fontSize: 13, color: C.slate }}>Status</span>
+                  <StatusBadge status={selected.status} />
+                </div>
+                
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+                   <div>
+                     <div style={{ fontSize: 11.5, color: C.slate, marginBottom: 4 }}>Type</div>
+                     <div style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{selected.vehicle_type || "TRUCK"}</div>
+                   </div>
+                   <div>
+                     <div style={{ fontSize: 11.5, color: C.slate, marginBottom: 4 }}>Capacity</div>
+                     <div style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{selected.capacity_kg} kg</div>
+                   </div>
+                </div>
+
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, paddingBottom: 16, borderBottom: `1px solid ${C.stone}` }}>
+                   <div>
+                     <div style={{ fontSize: 11.5, color: C.slate, marginBottom: 4 }}>Depot</div>
+                     <div style={{ fontSize: 13, fontWeight: 600, color: C.ink }}>{selected.depot?.name || "—"}</div>
+                   </div>
+                   <div>
+                     <div style={{ fontSize: 11.5, color: C.slate, marginBottom: 4 }}>Created</div>
+                     <div style={{ fontSize: 13, fontWeight: 500, color: C.ink }}>{selected.created_at ? new Date(selected.created_at).toLocaleDateString() : "—"}</div>
+                   </div>
+                </div>
+                
+                <div>
+                   <div style={{ fontSize: 11.5, color: C.slate, marginBottom: 4 }}>System ID</div>
+                   <div style={{ fontSize: 12, fontFamily: mono, color: C.slate, wordBreak: "break-all" }}>{selected.id}</div>
+                </div>
               </div>
             </div>
           )}
         </div>
-
-        {/* Detail Panel */}
-        {selected && (
-          <div className="fade-in" style={
-            isMobile
-              ? { position: "fixed", inset: 0, zIndex: 100, background: C.ivory, padding: 26, overflowY: "auto", border: "none", borderRadius: 0 }
-              : { background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: 18, alignSelf: "start", position: "sticky", top: 70 }
-          }>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start" }}>
-              <div>
-                <div style={{ fontFamily: mono, fontWeight: 700, fontSize: 14 }}>{selected.reference_number || selected.id.slice(0, 12)}</div>
-                <div style={{ fontSize: 12, color: C.slate, marginTop: 2 }}>{selected.operator?.name || "Unknown operator"}</div>
-              </div>
-              <button aria-label="Close details" onClick={() => setSelected(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 0 }}>
-                <X size={15} color={C.slate} />
-              </button>
-            </div>
-            <div style={{ marginTop: 14, display: "flex", flexDirection: "column", gap: 4, fontSize: 12.5 }}>
-              <Row l="Status" v={<StatusBadge status={selected.status} />} />
-              <Row l="Type" v={selected.vehicle_type || "TRUCK"} />
-              <Row l="Capacity" v={`${selected.capacity_kg} kg`} />
-              <Row l="Depot" v={selected.depot?.name || "—"} />
-              <Row l="Operator" v={selected.operator?.name || "—"} />
-              {selected.created_at && <Row l="Created" v={new Date(selected.created_at).toLocaleString()} />}
-              {selected.updated_at && <Row l="Updated" v={new Date(selected.updated_at).toLocaleString()} />}
-            </div>
-          </div>
-        )}
       </div>
-    </div>
-  );
-}
+    );
+  }
+
 
 /** Pagination button */
 function PageBtn({ children, active, disabled, onClick, "aria-label": ariaLabel }: { children: React.ReactNode; active?: boolean; disabled?: boolean; onClick: () => void; "aria-label"?: string }) {

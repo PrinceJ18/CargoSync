@@ -6,7 +6,6 @@ import { useAuth } from "../contexts/AuthContext";
 import { useMobile } from "../hooks/useMobile";
 import { C, mono } from "../data/prototype/designTokens";
 import { Panel } from "../components/shared/Panel";
-import { AdminRoutesPage } from "./AdminRoutesPage";
 import type { OptimizationRunResponse } from "../types/api";
 import L from "leaflet";
 
@@ -110,17 +109,9 @@ function VehicleMarker({ positions, cumDist, progress }: { positions: [number, n
 // ─── Main RoutesPage ─────────────────────────────────────────────
 type PlayState = "idle" | "playing" | "paused" | "completed";
 
-export function RoutesPage() {
-  const { profile } = useAuth();
-  const isAdmin = profile?.role === 'ADMIN';
-
+export function AdminRoutesPage() {
   const navigate = useNavigate();
   const isMobile = useMobile();
-
-  if (isAdmin) {
-    return <AdminRoutesPage />;
-  }
-
   const [scenario, setScenario] = useState("DEMO");
   const [runData, setRunData] = useState<OptimizationRunResponse | null>(null);
   const [vehicles, setVehicles] = useState<Record<string, any>>({});
@@ -396,7 +387,7 @@ export function RoutesPage() {
   // ─── UI ────────────────────────────────────────────────────────
   // ─── Extracted Map Node ───
   const mapNode = (
-    <div style={{ width: "100%", height: isAdmin ? 520 : (isMobile ? 360 : "100%"), minHeight: isAdmin ? "auto" : 520, background: C.cream, borderRadius: 6, overflow: "hidden", border: `1px solid ${C.stone}`, position: "relative", zIndex: 10 }}>
+    <div style={{ width: "100%", height: 520, minHeight: "auto", background: C.cream, borderRadius: 6, overflow: "hidden", border: `1px solid ${C.stone}`, position: "relative", zIndex: 10 }}>
       {hasGeometry ? (
         <MapContainer key={selectedIndex} center={defaultCenter} zoom={10} style={{ height: "100%", width: "100%" }}>
           <TileLayer attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>' url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png" />
@@ -489,11 +480,9 @@ export function RoutesPage() {
         {/* HEADER */}
         <div style={{ marginBottom: 24, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
           <div>
-            <div style={{ fontSize: 24, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em", marginBottom: 8 }}>Assigned Routes</div>
-            <div style={{ fontSize: 14.5, color: C.slate, maxWidth: 650, lineHeight: 1.5 }}>
-              {isAdmin 
-                ? "Inspect optimized network route geometries, stop schedules, and vehicle dispatch."
-                : "Review the routes CargoSync has generated for your operation."}
+            <div style={{ fontSize: 24, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em", marginBottom: 8, textTransform: "uppercase" }}>Network Routes</div>
+            <div style={{ fontSize: 14.5, color: C.slate, maxWidth: 700, lineHeight: 1.5 }}>
+              Inspect optimized routes, vehicle assignments, delivery sequences and return-load matches across the CargoSync network.
             </div>
           </div>
           <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(23,124,107,0.1)", color: C.emerald, padding: "6px 12px", borderRadius: 999, fontWeight: 600, fontSize: 12, border: "1px solid rgba(23,124,107,0.2)" }}>
@@ -504,80 +493,35 @@ export function RoutesPage() {
         {/* OPERATIONAL SNAPSHOT */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: 16, marginBottom: 32 }}>
            <div className="c-card" style={{ background: C.ivory, padding: 20, borderRadius: 8, border: `1px solid ${C.stone}` }}>
-              <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 8 }}>Total Routes</div>
+              <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 8, fontFamily: mono, textTransform: "uppercase" }}>Total Routes</div>
               <div style={{ fontSize: 28, fontWeight: 700, fontFamily: mono, color: C.ink }}>{runData.routes.length}</div>
            </div>
            <div className="c-card" style={{ background: C.ivory, padding: 20, borderRadius: 8, border: `1px solid ${C.stone}` }}>
-              <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 8 }}>Total Distance</div>
-              <div style={{ fontSize: 28, fontWeight: 700, fontFamily: mono, color: C.ink }}>{(totalDistAll / 1000).toFixed(1)} km</div>
+              <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 8, fontFamily: mono, textTransform: "uppercase" }}>Vehicles Assigned</div>
+              <div style={{ fontSize: 28, fontWeight: 700, fontFamily: mono, color: C.ink }}>{new Set(runData.routes.map(r => r.vehicle_id)).size}</div>
            </div>
            <div className="c-card" style={{ background: C.ivory, padding: 20, borderRadius: 8, border: `1px solid ${C.stone}` }}>
-              <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 8 }}>Total Duration</div>
-              <div style={{ fontSize: 28, fontWeight: 700, fontFamily: mono, color: C.ink }}>{fmtDuration(totalDurAll)}</div>
+              <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 8, fontFamily: mono, textTransform: "uppercase" }}>Total Stops</div>
+              <div style={{ fontSize: 28, fontWeight: 700, fontFamily: mono, color: C.ink }}>{runData.routes.reduce((acc, r) => acc + r.stops.length, 0)}</div>
            </div>
            <div className="c-card" style={{ background: C.ivory, padding: 20, borderRadius: 8, border: `1px solid ${C.stone}` }}>
-              <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 8 }}>Matched Return Loads</div>
+              <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 8, fontFamily: mono, textTransform: "uppercase" }}>Routes w/ Return Loads</div>
               <div style={{ fontSize: 28, fontWeight: 700, fontFamily: mono, color: C.coral }}>{matchedReturnLoads}</div>
            </div>
         </div>
 
         {/* WORKSPACE GRID */}
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 380px", gap: 24, alignItems: "start" }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "340px 1fr", gap: 24, alignItems: "start", marginBottom: 32 }}>
            
-           {/* LEFT: MAP */}
-           <div style={{ display: "flex", flexDirection: "column", gap: 12, height: isMobile ? "auto" : "calc(100vh - 280px)" }}>
-              {mapNode}
-              {playbackControlsNode}
-           </div>
-
-           {/* RIGHT: ROUTE LIST & DETAILS */}
-           <div style={{ display: "flex", flexDirection: "column", gap: 24, maxHeight: isMobile ? "auto" : "calc(100vh - 280px)", overflowY: "auto", paddingRight: 4 }}>
-              
-              {/* SELECTED ROUTE DETAILS */}
-              <div style={{ background: C.navy, borderRadius: 8, padding: 24, color: C.ivory, border: `1px solid ${C.charcoal}` }}>
-                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 16 }}>
-                    <div style={{ fontSize: 12, fontFamily: mono, color: C.peach, letterSpacing: 1, fontWeight: 600 }}>ROUTE {String(selectedIndex + 1).padStart(2, "0")}</div>
-                    {routeRlId && <div style={{ fontSize: 10.5, background: "rgba(232,84,46,0.2)", color: C.coral, padding: "3px 8px", borderRadius: 4, fontWeight: 600 }}>RETURN LOAD</div>}
-                 </div>
-                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20 }}>
-                    <Truck size={20} color={C.ivory} />
-                    <span style={{ fontSize: 18, fontWeight: 700, color: C.ivory, fontFamily: mono }}>{vehRef}</span>
-                 </div>
-                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, background: "rgba(0,0,0,0.15)", padding: 16, borderRadius: 6 }}>
-                    <div>
-                      <div style={{ fontSize: 11, color: "rgba(250,246,239,0.7)", marginBottom: 4 }}>Distance</div>
-                      <div style={{ fontSize: 14, fontWeight: 600, fontFamily: mono }}>{route!.total_distance_meters != null ? `${(route!.total_distance_meters / 1000).toFixed(1)} km` : "—"}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 11, color: "rgba(250,246,239,0.7)", marginBottom: 4 }}>Duration</div>
-                      <div style={{ fontSize: 14, fontWeight: 600, fontFamily: mono }}>{route!.total_duration_seconds != null ? fmtDuration(route!.total_duration_seconds) : "—"}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 11, color: "rgba(250,246,239,0.7)", marginBottom: 4 }}>Stops</div>
-                      <div style={{ fontSize: 14, fontWeight: 600, fontFamily: mono }}>{route!.stops?.length || 0}</div>
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 11, color: "rgba(250,246,239,0.7)", marginBottom: 4 }}>Deliveries</div>
-                      <div style={{ fontSize: 14, fontWeight: 600, fontFamily: mono }}>{deliveryCount}</div>
-                    </div>
-                 </div>
-                 
-                 {/* Return load subset info */}
-                 {routeRlId && (
-                   <div style={{ marginTop: 16, paddingTop: 16, borderTop: "1px solid rgba(250,246,239,0.1)", display: "flex", alignItems: "center", gap: 8 }}>
-                     <div style={{ width: 8, height: 8, borderRadius: "50%", background: C.coral }} />
-                     <span style={{ fontSize: 12.5, color: "rgba(250,246,239,0.9)" }}>Matched Return: <span style={{ fontFamily: mono, fontWeight: 600 }}>{routeRlRef}</span></span>
-                   </div>
-                 )}
-              </div>
-
-              {/* ROUTE LIST */}
+           {/* LEFT: ROUTE LIST */}
+           <div style={{ display: "flex", flexDirection: "column", gap: 24, maxHeight: isMobile ? "auto" : 600, overflowY: "auto", paddingRight: 4 }}>
               <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: C.slate, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 12 }}>All Assigned Routes</div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: C.slate, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 12 }}>Network Route List</div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                   {runData.routes.map((r, i) => {
                     const isSel = selectedIndex === i;
                     const vRef = vehicles[r.vehicle_id]?.reference_number || r.vehicle_id.slice(0, 8);
+                    const opName = vehicles[r.vehicle_id]?.operator?.name || "Unknown Operator";
                     return (
                       <div 
                         key={i} 
@@ -587,17 +531,18 @@ export function RoutesPage() {
                         onClick={() => setSelectedIndex(i)} 
                         onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setSelectedIndex(i); } }}
                         style={{
-                          padding: 16, border: `1.5px solid ${isSel ? C.coral : C.stone}`,
+                          padding: 16, border: `1px solid ${isSel ? C.navy : C.stone}`,
                           borderRadius: 8, background: isSel ? C.ivory : C.cream,
                           cursor: "pointer", transition: "all 0.2s",
-                          boxShadow: isSel ? "0 4px 12px rgba(232,84,46,0.08)" : "none"
+                          boxShadow: isSel ? "0 4px 12px rgba(27,35,51,0.08)" : "none"
                         }}
                         className={!isSel ? "c-card-hover" : ""}
                       >
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 8 }}>
-                          <div style={{ fontWeight: 700, fontSize: 13.5, color: isSel ? C.coral : C.ink }}>Route {i + 1}</div>
-                          {!!r.return_load && <div style={{ background: "rgba(232,84,46,0.1)", color: C.coral, padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 600 }}>RETURN LOAD</div>}
+                          <div style={{ fontWeight: 700, fontSize: 14, color: isSel ? C.navy : C.ink }}>Route {String(i + 1).padStart(2, "0")}</div>
+                          {!!r.return_load && <div style={{ background: "rgba(232,84,46,0.1)", color: C.coral, padding: "2px 6px", borderRadius: 4, fontSize: 10, fontWeight: 600, fontFamily: mono }}>RETURN LOAD</div>}
                         </div>
+                        <div style={{ fontSize: 12, color: C.slate, marginBottom: 8 }}>{opName}</div>
                         <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
                           <Truck size={14} color={C.slate} />
                           <div style={{ fontSize: 12, fontFamily: mono, color: C.slate }}>
@@ -614,7 +559,88 @@ export function RoutesPage() {
                 </div>
               </div>
            </div>
+
+           {/* RIGHT: ROUTE DETAILS */}
+           <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
+              
+              {/* SELECTED ROUTE DETAILS */}
+              <div style={{ background: C.navy, borderRadius: 8, padding: 24, color: C.ivory, border: `1px solid ${C.charcoal}` }}>
+                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 20 }}>
+                    <div style={{ fontSize: 14, fontFamily: mono, color: C.ivory, letterSpacing: 1, fontWeight: 700 }}>ROUTE {String(selectedIndex + 1).padStart(2, "0")}</div>
+                    {routeRlId && <div style={{ fontSize: 11, background: "rgba(232,84,46,0.2)", color: C.coral, padding: "4px 10px", borderRadius: 4, fontWeight: 600, fontFamily: mono }}>RETURN LOAD MATCHED</div>}
+                 </div>
+                 
+                 <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20, marginBottom: 24 }}>
+                   <div>
+                      <div style={{ fontSize: 11, color: "rgba(250,246,239,0.7)", marginBottom: 4, textTransform: "uppercase" }}>Assigned Vehicle</div>
+                      <div style={{ fontSize: 16, fontWeight: 600, fontFamily: mono, color: C.ivory }}>{vehRef}</div>
+                   </div>
+                   <div>
+                      <div style={{ fontSize: 11, color: "rgba(250,246,239,0.7)", marginBottom: 4, textTransform: "uppercase" }}>Operator</div>
+                      <div style={{ fontSize: 16, fontWeight: 600, color: C.ivory }}>{vehicles[route!.vehicle_id]?.operator?.name || "Unknown"}</div>
+                   </div>
+                 </div>
+
+                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16, background: "rgba(0,0,0,0.15)", padding: 16, borderRadius: 6 }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: "rgba(250,246,239,0.7)", marginBottom: 4 }}>Distance</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, fontFamily: mono }}>{route!.total_distance_meters != null ? `${(route!.total_distance_meters / 1000).toFixed(1)} km` : "—"}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: "rgba(250,246,239,0.7)", marginBottom: 4 }}>Duration</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, fontFamily: mono }}>{route!.total_duration_seconds != null ? fmtDuration(route!.total_duration_seconds) : "—"}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: "rgba(250,246,239,0.7)", marginBottom: 4 }}>Total Stops</div>
+                      <div style={{ fontSize: 15, fontWeight: 600, fontFamily: mono }}>{route!.stops?.length || 0}</div>
+                    </div>
+                 </div>
+              </div>
+
+              {/* ROUTE STOPS & RETURN LOAD SEQUENCE */}
+              <div style={{ background: C.ivory, borderRadius: 8, padding: 24, border: `1px solid ${C.stone}` }}>
+                 <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, textTransform: "uppercase", letterSpacing: "0.02em", marginBottom: 20 }}>Delivery Sequence</div>
+                 
+                 <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                    {route!.stops.map((stop: any, idx: number) => {
+                      const isOrigin = idx === 0;
+                      const isDest = idx === route!.stops.length - 1;
+                      const stopLabelText = stopLabel(stop, idx, route!.stops.length);
+                      const ref = stopRef(stop);
+                      
+                      let badgeColor = C.slate;
+                      if (stop.stop_type === "ORDER") badgeColor = C.coral;
+                      if (stop.stop_type === "RETURN_PICKUP") badgeColor = C.emerald;
+                      if (stop.stop_type === "RETURN_DELIVERY") badgeColor = "#8B5CF6";
+
+                      return (
+                        <div key={idx} style={{ display: "flex", gap: 16, position: "relative" }}>
+                          {idx < route!.stops.length - 1 && (
+                            <div style={{ position: "absolute", left: 13, top: 24, bottom: -16, width: 2, background: C.stone }} />
+                          )}
+                          <div style={{ width: 28, height: 28, borderRadius: "50%", background: C.cream, border: `2px solid ${badgeColor}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0, zIndex: 2 }}>
+                            <div style={{ width: 8, height: 8, borderRadius: "50%", background: badgeColor }} />
+                          </div>
+                          <div style={{ paddingBottom: 12 }}>
+                            <div style={{ fontSize: 14, fontWeight: 600, color: C.ink }}>{stopLabelText}</div>
+                            {ref && <div style={{ fontSize: 13, color: C.slate, fontFamily: mono, marginTop: 4 }}>ID: {ref}</div>}
+                          </div>
+                        </div>
+                      );
+                    })}
+                 </div>
+              </div>
+
+           </div>
         </div>
+
+        {/* BOTTOM: MAP */}
+        <div style={{ display: "flex", flexDirection: "column", gap: 12, height: 600 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.slate, letterSpacing: "0.05em", textTransform: "uppercase" }}>Route Visualization</div>
+          {mapNode}
+          {playbackControlsNode}
+        </div>
+
       </div>
     );
 }

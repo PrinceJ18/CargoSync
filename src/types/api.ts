@@ -82,7 +82,7 @@ export interface ReturnLoad {
 
 // /api/optimization/run
 export interface OptimizationRunRequest {
-  scenario: string; // e.g., "DEMO"
+  scenario_id: string; // e.g., "DEMO"
   config?: Record<string, unknown>;
 }
 

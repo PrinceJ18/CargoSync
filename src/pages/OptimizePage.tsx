@@ -1,19 +1,29 @@
 import { useState, useEffect } from "react";
 import { CheckCircle2, RefreshCw, AlertTriangle, ArrowRight, Route as RouteIcon } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 import { C, mono } from "../data/prototype/designTokens";
 import { useMobile } from "../hooks/useMobile";
 import { Panel } from "../components/shared/Panel";
 import { Reveal } from "../components/shared/Reveal";
 import { ResultComparison } from "../features/process/ResultComparison";
 import type { OptimizationRunResponse } from "../types/api";
+import { AdminOptimizationPage } from "./AdminOptimizationPage";
 
 const PIPELINE_STAGES = [
   "Orders", "DBSCAN", "Cluster Validation", "Capacity",
   "Road Costs", "Baseline", "OR-Tools", "Return Loads", "Savings", "Persistence"
 ];
 
+
 export function OptimizePage() {
+  const { profile } = useAuth();
+  const isAdmin = profile?.role === 'ADMIN';
+
+  if (isAdmin) {
+    return <AdminOptimizationPage />;
+  }
+
   const navigate = useNavigate();
   const isMobile = useMobile();
   const [running, setRunning] = useState(false);
@@ -21,8 +31,12 @@ export function OptimizePage() {
   const [scenario, setScenario] = useState("DEMO");
   const [error, setError] = useState<string | null>(null);
   const [loadingLatest, setLoadingLatest] = useState(false);
+  
+  const [orderCount, setOrderCount] = useState<number | null>(null);
+  const [fleetCount, setFleetCount] = useState<number | null>(null);
+  const [loadingStats, setLoadingStats] = useState(false);
 
-    useEffect(() => {
+  useEffect(() => {
     let active = true;
     const fetchLatest = async () => {
       setLoadingLatest(true);
@@ -35,12 +49,11 @@ export function OptimizePage() {
       } catch (err: any) {
         if (active) {
           const apiErr = err as import("../types/api").ApiError;
-          if (apiErr.status === 404 || apiErr.code === "NOT_FOUND") {
-            // No run exists yet for this scenario, perfectly fine.
-            setResult(null);
-          } else {
+          if (apiErr.status !== 404 && apiErr.code !== "NOT_FOUND") {
             console.error(apiErr);
             setError(apiErr.message || "Failed to fetch previous optimization run.");
+          } else {
+            setResult(null);
           }
         }
       } finally {
@@ -51,6 +64,30 @@ export function OptimizePage() {
     return () => { active = false; };
   }, [scenario]);
 
+  useEffect(() => {
+    let active = true;
+    const fetchStats = async () => {
+      setLoadingStats(true);
+      try {
+        const { api } = await import("../services/apiClient");
+        const [ordersRes, fleetRes] = await Promise.all([
+           api.orders.list({ page: 1, page_size: 1, scenario }),
+           api.fleet.listVehicles({ page: 1, page_size: 1, scenario })
+        ]);
+        if (active) {
+          setOrderCount(ordersRes.total);
+          setFleetCount(fleetRes.total);
+        }
+      } catch (e) {
+        console.error(e);
+      } finally {
+        if (active) setLoadingStats(false);
+      }
+    };
+    fetchStats();
+    return () => { active = false; };
+  }, [scenario]);
+
   const run = async () => {
     if (running) return;
     setRunning(true);
@@ -58,7 +95,7 @@ export function OptimizePage() {
     setError(null);
     try {
       const { api } = await import("../services/apiClient");
-      const res = await api.optimization.run({ scenario: scenario });
+      const res = await api.optimization.run({ scenario_id: scenario });
       setResult(res);
     } catch (err: any) {
       console.error(err);
@@ -73,130 +110,190 @@ export function OptimizePage() {
     navigate("/app/routes");
   };
 
+  const matchedReturnLoads = result?.routes?.filter(r => r.return_load).length || 0;
+
   return (
-    <div style={{ padding: isMobile ? 16 : 26 }}>
-      <div style={{ fontSize: 20, fontWeight: 700, marginBottom: 4 }}>Optimize</div>
-      <div style={{ fontSize: 13, color: C.slate, marginBottom: 20 }}>Build a scenario and run the constrained optimization engine.</div>
-      <div style={{ display: isMobile ? "flex" : "grid", flexDirection: "column", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 20 }}>
-        <Panel title="Scenario Setup">
-          <div style={{ marginBottom: 16 }}>
-            <label htmlFor="scenario-select" style={{ fontSize: 12, fontWeight: 600, display: "block", marginBottom: 6 }}>Select Dataset:</label>
-            <select 
-              id="scenario-select"
-              value={scenario} 
-              onChange={(e) => {
-                if (!running) setScenario(e.target.value);
-              }}
-              disabled={running}
-              style={{ width: "100%", padding: "8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 13 }}
-            >
-              <option value="DEMO">Regional Network (Standard)</option>
-              <option value="NETWORK">Extended Network (High Volume)</option>
-            </select>
-          </div>
-          <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 16 }}>Configures active operators and logistics demand based on scenario context.</div>
-          
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 16 }}>
-            {["Capacity constraints", "Time windows", "Return-load matching"].map((f) => (
-              <span key={f} style={{ fontSize: 11.5, fontFamily: mono, border: `1px solid ${C.stone}`, padding: "5px 10px", borderRadius: 999 }}>{f}</span>
-            ))}
-          </div>
-          
-          <button 
-            className="c-btn-primary"
-            onClick={run} 
-            disabled={running} 
-            style={{ 
-              background: C.coral, 
-              color: C.ivory, 
-              border: "none", 
-              padding: "11px 20px", 
-              borderRadius: 4, 
-              fontWeight: 600, 
-              fontSize: 13.5, 
-              cursor: running ? "default" : "pointer", 
-              opacity: running ? 0.6 : 1,
-              width: "100%"
-            }}
-          >
-            {running ? "Optimization in Progress..." : "Run Optimization"}
-          </button>
-        </Panel>
-        <Panel title="Pipeline Execution">
-          {running ? (
-            <div className="fade-in" role="status" aria-label="Optimization Running" style={{ display: "flex", flexDirection: "column", gap: 14, padding: "10px 0" }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <RefreshCw size={18} color={C.coral} className="spin" aria-hidden="true" />
-                <div style={{ fontSize: 14, color: C.ink, fontWeight: 600 }}>Optimization engine running...</div>
-              </div>
-              <div style={{ fontSize: 12, color: C.slate }}>Executing synchronous pipeline. This typically takes a few seconds.</div>
-              <div style={{ display: "flex", flexWrap: "wrap", gap: "6px 4px", marginTop: 4 }}>
-                {PIPELINE_STAGES.map((stage, i) => (
-                  <div key={stage} style={{ display: "flex", alignItems: "center", gap: 4 }}>
-                    <span style={{ fontSize: 11, fontFamily: mono, color: C.ink, background: C.cream, border: `1px solid ${C.stone}`, padding: "3px 8px", borderRadius: 4 }}>
-                      {stage}
-                    </span>
-                    {i < PIPELINE_STAGES.length - 1 && <ArrowRight size={10} color={C.slate} aria-hidden="true" />}
-                  </div>
-                ))}
-              </div>
-            </div>
-          ) : loadingLatest ? (
-            <div className="fade-in" role="status" aria-label="Loading latest run" style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 0", color: C.slate, fontSize: 13 }}>
-              <RefreshCw size={14} className="spin" aria-hidden="true" /> Loading latest run data...
-            </div>
-          ) : result ? (
-            <div className="fade-in" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              <Reveal delay={0}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 14, color: C.ink, fontWeight: 600 }}>
-                  {result.status === "COMPLETED" ? <CheckCircle2 size={18} color={C.emerald} /> : <AlertTriangle size={18} color={result.status === "PARTIAL" ? "#B58500" : C.coral} />}
-                  Optimization {result.status === "COMPLETED" ? "Successful" : result.status === "PARTIAL" ? "Partially Successful" : "Failed"}
-                </div>
-              </Reveal>
-              
-              <Reveal delay={0.1}>
-                <div className="c-card-hover" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, fontSize: 12.5, background: C.ivory, padding: 14, borderRadius: 6, border: `1px solid ${C.stone}` }}>
-                  <div><span style={{ color: C.slate }}>Run ID:</span> <span style={{ fontFamily: mono }}>{result.run_id?.slice(0,8) || "—"}</span></div>
-                  <div><span style={{ color: C.slate }}>Scenario:</span> {result.scenario || "—"}</div>
-                  <div><span style={{ color: C.slate }}>Solver Status:</span> <span style={{ fontWeight: 600, color: result.solver_status === "OPTIMAL" ? C.emerald : result.solver_status ? C.coral : C.ink }}>{result.solver_status || "—"}</span></div>
-                  <div><span style={{ color: C.slate }}>Routes Generated:</span> {result.routes?.length ?? "—"}</div>
-                </div>
-              </Reveal>
-
-              {result.status === "COMPLETED" && (
-                <button 
-                  className="c-btn-hover"
-                  onClick={handleViewRoutes}
-                  style={{ background: C.ink, color: C.ivory, border: "none", padding: "8px 16px", borderRadius: 4, fontWeight: 600, fontSize: 12.5, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 8, marginTop: 8 }}
-                >
-                  <RouteIcon size={14} /> View Routes
-                </button>
-              )}
-
-              {result.diagnostics && result.diagnostics.length > 0 && (
-                <Reveal delay={0.2}>
-                  <div style={{ marginTop: 8 }}>
-                    <div style={{ fontSize: 12, fontWeight: 600, marginBottom: 8, color: C.slate }}>Diagnostics Output</div>
-                    <div style={{ background: C.cream, padding: 12, borderRadius: 6, fontSize: 11.5, fontFamily: mono, color: C.slate, maxHeight: 160, overflowY: "auto", display: "flex", flexDirection: "column", gap: 6 }}>
-                      {result.diagnostics.map((d, i) => (
-                        <div key={i}><span style={{ color: d.level === "ERROR" ? C.coral : d.level === "WARNING" ? "#B58500" : C.slate }}>[{d.level}]</span> {d.message}</div>
-                      ))}
-                    </div>
-                  </div>
-                </Reveal>
-              )}
-            </div>
-          ) : error ? (
-             <div className="fade-in" style={{ color: C.coral, fontSize: 13, background: "rgba(232,84,46,0.1)", padding: 12, borderRadius: 4 }}>{error}</div>
-          ) : (
-             <div className="fade-in" style={{ fontSize: 13, color: C.slate }}>No optimization runs found for this scenario. Ready to run.</div>
-          )}
-        </Panel>
-      </div>
-      {!running && result && result.metrics && (
-        <div style={{ marginTop: 24 }}>
-          <ResultComparison result={result} />
+    <div className="fade-in" style={{ padding: isMobile ? 16 : 32, maxWidth: 1200, margin: "0 auto", width: "100%" }}>
+      {/* HEADER */}
+      <div style={{ marginBottom: 32 }}>
+        <div style={{ fontSize: 24, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em", marginBottom: 8 }}>Optimization Opportunities</div>
+        <div style={{ fontSize: 14.5, color: C.slate, maxWidth: 650, lineHeight: 1.5 }}>
+          Turn your current orders and available fleet into coordinated, more efficient routes. CargoSync evaluates your operation to identify better routing opportunities.
         </div>
+        {/* Quick Scenario Toggle */}
+        <div style={{ marginTop: 16, display: "flex", gap: 8, alignItems: "center" }}>
+           <span style={{ fontSize: 13, fontWeight: 600, color: C.slate }}>Scenario:</span>
+           <select 
+              aria-label="Select Scenario"
+              value={scenario} 
+              onChange={(e) => { if (!running) setScenario(e.target.value); }}
+              disabled={running}
+              style={{ padding: "6px 12px", borderRadius: 6, border: `1px solid ${C.stone}`, fontSize: 13, background: C.ivory, color: C.ink, fontWeight: 500, cursor: "pointer", outline: "none" }}
+           >
+             <option value="DEMO">Indore Regional Operations</option>
+             <option value="NETWORK">Extended Network</option>
+           </select>
+        </div>
+      </div>
+
+      {/* OPERATIONAL INPUT SNAPSHOT */}
+      <div style={{ marginBottom: 40 }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.slate, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 12 }}>Current Operation Input</div>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr 2fr", gap: 16 }}>
+           <div className="c-card" style={{ background: C.ivory, padding: 20, borderRadius: 8, border: `1px solid ${C.stone}` }}>
+              <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 8 }}>Demand</div>
+              <div style={{ fontSize: 28, fontWeight: 700, fontFamily: mono, color: C.ink }}>
+                {loadingStats ? "—" : orderCount ?? "—"}
+              </div>
+              <div style={{ fontSize: 12, color: C.slate, marginTop: 4 }}>Pending Orders</div>
+           </div>
+           <div className="c-card" style={{ background: C.ivory, padding: 20, borderRadius: 8, border: `1px solid ${C.stone}` }}>
+              <div style={{ fontSize: 12.5, color: C.slate, marginBottom: 8 }}>Supply</div>
+              <div style={{ fontSize: 28, fontWeight: 700, fontFamily: mono, color: C.ink }}>
+                {loadingStats ? "—" : fleetCount ?? "—"}
+              </div>
+              <div style={{ fontSize: 12, color: C.slate, marginTop: 4 }}>Available Vehicles</div>
+           </div>
+           
+           <div className="c-card" style={{ background: C.cream, padding: 20, borderRadius: 8, border: `1px solid ${C.stone}`, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: C.ink, marginBottom: 12 }}>CargoSync Intelligence Pipeline</div>
+              <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 6 }}>
+                <span style={{ fontSize: 11, fontFamily: mono, background: C.ivory, border: `1px solid ${C.stone}`, padding: "4px 8px", borderRadius: 4, color: C.slate }}>Orders</span>
+                <ArrowRight size={12} color={C.stone} />
+                <span style={{ fontSize: 11, fontFamily: mono, background: C.ivory, border: `1px solid ${C.stone}`, padding: "4px 8px", borderRadius: 4, color: C.slate }}>Geo-Clustering</span>
+                <ArrowRight size={12} color={C.stone} />
+                <span style={{ fontSize: 11, fontFamily: mono, background: C.ivory, border: `1px solid ${C.stone}`, padding: "4px 8px", borderRadius: 4, color: C.slate }}>Fleet Capacity</span>
+                <ArrowRight size={12} color={C.stone} />
+                <span style={{ fontSize: 11, fontFamily: mono, background: C.ivory, border: `1px solid ${C.stone}`, padding: "4px 8px", borderRadius: 4, color: C.slate }}>Constraints</span>
+                <ArrowRight size={12} color={C.stone} />
+                <span style={{ fontSize: 11, fontFamily: mono, background: C.ivory, border: `1px solid ${C.stone}`, padding: "4px 8px", borderRadius: 4, color: C.slate }}>Optimized</span>
+              </div>
+           </div>
+        </div>
+      </div>
+
+      {/* OPTIMIZATION ACTION / STATUS */}
+      <div style={{ background: C.navy, borderRadius: 8, padding: isMobile ? 24 : 32, color: C.ivory, marginBottom: 40, border: `1px solid ${C.charcoal}`, boxShadow: "0 10px 30px rgba(0,0,0,0.05)" }}>
+         <div style={{ display: "flex", flexDirection: isMobile ? "column" : "row", justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "center", gap: 20 }}>
+            <div>
+               <div style={{ fontSize: 18, fontWeight: 700, color: C.ivory, marginBottom: 8 }}>Ready to optimize your current operation</div>
+               <div style={{ fontSize: 14, color: C.slate, maxWidth: 500 }}>
+                 Run the CargoSync engine to evaluate all possible route combinations and identify the most efficient logistics plan.
+               </div>
+            </div>
+            
+            <button 
+              onClick={run} 
+              disabled={running} 
+              style={{ 
+                background: C.coral, color: C.ivory, border: "none", padding: "14px 28px", borderRadius: 6, fontWeight: 700, fontSize: 14, cursor: running ? "default" : "pointer", opacity: running ? 0.8 : 1, transition: "background 0.2s", display: "flex", alignItems: "center", gap: 10, flexShrink: 0, width: isMobile ? "100%" : "auto", justifyContent: "center"
+              }}
+            >
+              {running && <RefreshCw size={16} className="spin" />}
+              {running ? "Optimizing Routes..." : "Run Optimization"}
+            </button>
+         </div>
+
+         {error && (
+            <div className="fade-in" style={{ marginTop: 24, color: "#FFA6A6", fontSize: 13, background: "rgba(232,84,46,0.15)", padding: 12, borderRadius: 6, border: "1px solid rgba(232,84,46,0.3)" }}>
+              {error}
+            </div>
+         )}
+      </div>
+
+      {/* BEFORE vs CARGOSYNC OPTIMIZED & IMPACT */}
+      {!running && loadingLatest && (
+         <div className="fade-in" style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: 40, color: C.slate, gap: 10 }}>
+            <RefreshCw size={18} className="spin" /> Loading optimization results...
+         </div>
+      )}
+
+      {!running && !loadingLatest && result && result.metrics && (
+         <div className="fade-in">
+            <div style={{ fontSize: 13, fontWeight: 700, color: C.slate, letterSpacing: "0.05em", textTransform: "uppercase", marginBottom: 16 }}>Comparison</div>
+            
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 24, marginBottom: 32 }}>
+               {/* BASELINE */}
+               <div style={{ background: C.ivory, borderRadius: 8, padding: 24, border: `1px solid ${C.stone}`, boxShadow: "0 2px 8px rgba(0,0,0,0.02)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, fontFamily: mono, color: C.slate, marginBottom: 20 }}>CURRENT OPERATION (BASELINE)</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 16, borderBottom: `1px solid ${C.stone}` }}>
+                        <span style={{ fontSize: 13.5, color: C.slate }}>Total Distance</span>
+                        <span style={{ fontSize: 16, fontWeight: 700, fontFamily: mono, color: C.ink }}>{result.metrics.baseline?.distance_meters != null ? `${(result.metrics.baseline.distance_meters / 1000).toFixed(1)} km` : "—"}</span>
+                     </div>
+                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 16, borderBottom: `1px solid ${C.stone}` }}>
+                        <span style={{ fontSize: 13.5, color: C.slate }}>Vehicles Used</span>
+                        <span style={{ fontSize: 16, fontWeight: 700, fontFamily: mono, color: C.ink }}>{result.metrics.baseline?.vehicles_used?.toString() || "—"}</span>
+                     </div>
+                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: 13.5, color: C.slate }}>Total Duration</span>
+                        <span style={{ fontSize: 16, fontWeight: 700, fontFamily: mono, color: C.ink }}>{result.metrics.baseline?.duration_seconds != null ? `${(result.metrics.baseline.duration_seconds / 3600).toFixed(1)} hrs` : "—"}</span>
+                     </div>
+                  </div>
+               </div>
+
+               {/* OPTIMIZED */}
+               <div style={{ background: C.cream, borderRadius: 8, padding: 24, border: `2px solid ${C.emerald}`, boxShadow: "0 4px 12px rgba(23,124,107,0.08)" }}>
+                  <div style={{ fontSize: 12, fontWeight: 700, fontFamily: mono, color: C.emerald, marginBottom: 20, display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+                    <span>CARGOSYNC OPTIMIZED</span>
+                    {result.status === "COMPLETED" ? <CheckCircle2 size={16} /> : <AlertTriangle size={16} color={C.coral} />}
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 16, borderBottom: "1px solid rgba(23,124,107,0.1)" }}>
+                        <span style={{ fontSize: 13.5, color: C.ink, fontWeight: 500 }}>Total Distance</span>
+                        <span style={{ fontSize: 18, fontWeight: 700, fontFamily: mono, color: C.emerald }}>{result.metrics.optimized?.distance_meters != null ? `${(result.metrics.optimized.distance_meters / 1000).toFixed(1)} km` : "—"}</span>
+                     </div>
+                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingBottom: 16, borderBottom: "1px solid rgba(23,124,107,0.1)" }}>
+                        <span style={{ fontSize: 13.5, color: C.ink, fontWeight: 500 }}>Vehicles Used</span>
+                        <span style={{ fontSize: 18, fontWeight: 700, fontFamily: mono, color: C.emerald }}>{result.metrics.optimized?.vehicles_used?.toString() || "—"}</span>
+                     </div>
+                     <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                        <span style={{ fontSize: 13.5, color: C.ink, fontWeight: 500 }}>Total Duration</span>
+                        <span style={{ fontSize: 18, fontWeight: 700, fontFamily: mono, color: C.emerald }}>{result.metrics.optimized?.duration_seconds != null ? `${(result.metrics.optimized.duration_seconds / 3600).toFixed(1)} hrs` : "—"}</span>
+                     </div>
+                  </div>
+               </div>
+            </div>
+
+            {/* IMPACT SUMMARY */}
+            <div style={{ background: C.ivory, borderRadius: 8, padding: 24, border: `1px solid ${C.stone}`, marginBottom: 32 }}>
+               <div style={{ fontSize: 13, fontWeight: 700, color: C.ink, marginBottom: 20 }}>Measurable Operational Impact</div>
+               <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(5, 1fr)", gap: 20 }}>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <span style={{ fontSize: 11.5, color: C.slate, fontFamily: mono }}>Distance Saved</span>
+                    <span style={{ fontSize: 22, fontWeight: 700, color: C.emerald }}>{result.metrics.savings?.distance_saved_meters != null ? `${(result.metrics.savings.distance_saved_meters / 1000).toFixed(1)} km` : "—"}</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <span style={{ fontSize: 11.5, color: C.slate, fontFamily: mono }}>Cost Saved</span>
+                    <span style={{ fontSize: 22, fontWeight: 700, color: C.emerald }}>{result.metrics.savings?.cost_saved_inr != null ? `₹${Math.round(result.metrics.savings.cost_saved_inr).toLocaleString()}` : "—"}</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <span style={{ fontSize: 11.5, color: C.slate, fontFamily: mono }}>Return Loads</span>
+                    <span style={{ fontSize: 22, fontWeight: 700, color: C.coral }}>{matchedReturnLoads}</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <span style={{ fontSize: 11.5, color: C.slate, fontFamily: mono }}>CO₂ Avoided</span>
+                    <span style={{ fontSize: 22, fontWeight: 700, color: C.emerald }}>{result.metrics.savings?.co2_saved_kg != null ? `${result.metrics.savings.co2_saved_kg.toFixed(1)} kg` : "—"}</span>
+                  </div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+                    <span style={{ fontSize: 11.5, color: C.slate, fontFamily: mono }}>Run ID</span>
+                    <span style={{ fontSize: 14, fontWeight: 500, color: C.slate, fontFamily: mono, wordBreak: "break-all", marginTop: "auto" }}>{result.run_id?.slice(0, 8) || "—"}</span>
+                  </div>
+               </div>
+            </div>
+
+            {/* NEXT STEP */}
+            {result.status === "COMPLETED" && (
+               <div style={{ display: "flex", justifyContent: "flex-end" }}>
+                  <button 
+                    onClick={handleViewRoutes}
+                    style={{ background: C.ink, color: C.ivory, border: "none", padding: "12px 24px", borderRadius: 6, fontWeight: 700, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", gap: 10, transition: "background 0.2s" }}
+                  >
+                    View Assigned Routes <RouteIcon size={16} />
+                  </button>
+               </div>
+            )}
+         </div>
       )}
     </div>
   );

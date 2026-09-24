@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Package, Truck, Gauge, TrendingDown, RefreshCw, CheckCircle2, AlertCircle, Loader2, Route, Leaf, IndianRupee } from "lucide-react";
+import { Package, Truck, Gauge, TrendingDown, RefreshCw, AlertCircle, Loader2, Route, MapPin } from "lucide-react";
 import { C, mono } from "../data/prototype/designTokens";
 import { MetricCard } from "../components/shared/MetricCard";
 import { Panel } from "../components/shared/Panel";
-import { Reveal } from "../components/shared/Reveal";
+
 import { StatusBadge } from "../components/shared/StatusBadge";
 import { NetworkMap } from "../features/map/NetworkMap";
 import { useAuth } from "../contexts/AuthContext";
@@ -23,18 +23,19 @@ export function DashboardPage() {
   const [latestRun, setLatestRun] = useState<OptimizationRunResponse | null>(null);
   const [returnLoads, setReturnLoads] = useState<any[] | null>(null);
   const [depots, setDepots] = useState<any[] | null>(null);
+  const [orders, setOrders] = useState<any[] | null>(null);
 
   // Loading / error state
   const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "success" | "error">("loading");
   const [pageError, setPageError] = useState<string | null>(null);
-  const [optError, setOptError] = useState(false);
 
-  const [scenario, setScenario] = useState("DEMO");
+
+  const [scenario] = useState("DEMO");
 
   const fetchDashboardData = () => {
     setFetchStatus("loading");
     setPageError(null);
-    setOptError(false);
+
     
     import("../services/apiClient").then(({ api }) => {
       Promise.all([
@@ -53,6 +54,7 @@ export function DashboardPage() {
         });
         setDepots(depotsData.items);
         setReturnLoads(rlData.items);
+        setOrders(ordersData.items);
         setFetchStatus("success");
       }).catch(err => {
         console.error("Dashboard core fetch error:", err);
@@ -62,8 +64,7 @@ export function DashboardPage() {
         api.optimization.getLatest(scenario)
           .then(setLatestRun)
           .catch(err => {
-            if (err.status !== 404) setOptError(true);
-            else setLatestRun(null);
+            if (err.status === 404) setLatestRun(null);
           });
       });
     });
@@ -96,145 +97,276 @@ export function DashboardPage() {
   }
 
   return (
-    <div style={{ padding: isMobile ? 16 : 26, display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.6fr 1fr", gap: 20 }}>
-      <div>
-        <div style={{ marginBottom: 16, display: "flex", flexDirection: isMobile ? "column" : "row", gap: 12, justifyContent: "space-between", alignItems: isMobile ? "flex-start" : "baseline" }}>
-          <div>
-            <div style={{ fontSize: 20, fontWeight: 700 }}>{isAdmin ? "Network Overview" : "My Operations"}</div>
-            <div style={{ fontSize: 13, color: C.slate }}>{isAdmin ? "Cargo movement across the full Indore network." : `${profile?.operator_name || "Operator"} · Indore network.`}</div>
-          </div>
-          <div style={{ display: "flex", gap: 12, alignItems: "center" }}>
-            <select 
-              aria-label="Select Scenario"
-              value={scenario} 
-              onChange={(e) => setScenario(e.target.value)}
-              style={{ padding: "4px 8px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 12, background: C.ivory, cursor: "pointer" }}
-            >
-              <option value="DEMO">DEMO - Regional Network</option>
-              <option value="NETWORK">NETWORK - Extended Operations</option>
-            </select>
-            <span style={{ fontSize: 10.5, fontFamily: mono, color: C.slate, border: `1px solid ${C.stone}`, padding: "3px 8px", borderRadius: 999 }}>LIVE SYSTEM</span>
-          </div>
-        </div>
-        <div style={{ position: "relative" }}>
-          {fetchStatus === "loading" && (
-            <div className="fade-in" role="status" aria-label="Loading map data" style={{ position: "absolute", inset: 0, background: "rgba(250,246,239,0.5)", zIndex: 10, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Loader2 size={24} color={C.slate} className="spin" aria-hidden="true" />
-            </div>
-          )}
-          <NetworkMap />
-        </div>
-
-        {/* Entity KPI Cards */}
-        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(5, 1fr)", gap: 12, marginTop: 16, opacity: fetchStatus === "loading" ? 0.6 : 1 }}>
-          <Reveal delay={0}><MetricCard icon={<Package size={14} color={C.slate} />} label="Orders" value={totals ? totals.orders.toString() : "\u2014"} sub={totals ? `${totals.depots} depots` : "\u2014"} /></Reveal>
-          <Reveal delay={0.05}><MetricCard icon={<Truck size={14} color={C.slate} />} label="Vehicles" value={totals ? totals.fleet.toString() : "\u2014"} sub="active" /></Reveal>
-          <Reveal delay={0.1}><MetricCard icon={<Gauge size={14} color={C.slate} />} label="Avg Utilization" value={metrics ? `${metrics.utilization_pct}%` : "\u2014"} /></Reveal>
-          <Reveal delay={0.15}><MetricCard icon={<TrendingDown size={14} color={C.coral} />} label="Distance Saved" value={distSavedKm !== null ? `${distSavedKm} km` : "\u2014"} accent /></Reveal>
-          <Reveal delay={0.2}><MetricCard icon={<RefreshCw size={14} color={C.slate} />} label="Return Loads" value={totals ? totals.returnLoads.toString() : "\u2014"} /></Reveal>
-        </div>
-
-        {/* Optimization Savings — only if real data exists */}
-        {hasOptimization && optMetrics?.savings && (
-          <Reveal delay={0.25}>
-            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 12, marginTop: 12 }}>
-              <MiniStat icon={<Route size={13} color={C.navy} />} label="Routes" value={routeCount.toString()} />
-              <MiniStat icon={<TrendingDown size={13} color={C.coral} />} label="Distance Saved" value={distSavedKm !== null ? `${distSavedKm} km` : "\u2014"} />
-              <MiniStat icon={<IndianRupee size={13} color={C.emerald} />} label="Cost Saved" value={costSaved !== null ? `\u20B9${Math.round(costSaved).toLocaleString("en-IN")}` : "\u2014"} />
-              <MiniStat icon={<Leaf size={13} color={C.emerald} />} label="CO\u2082 Saved" value={co2Saved !== null ? `${co2Saved.toFixed(1)} kg` : "\u2014"} />
-            </div>
-          </Reveal>
-        )}
-      </div>
-      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-        {/* Optimization Status — from real latest run */}
-        <Panel title="Optimization Status">
-          {optError ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5, color: C.slate }}>
-              <AlertCircle size={13} color={C.amber} /> Unable to load optimization data.
-            </div>
-          ) : !hasOptimization ? (
-            <div style={{ fontSize: 12.5, color: C.slate, padding: "8px 0" }}>
-              No optimization run completed yet. Run an optimization from the Optimize page.
-            </div>
-          ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-              <div style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 12.5 }}>
-                <CheckCircle2 size={13} color={C.emerald} />
-                <span style={{ fontWeight: 600, color: C.ink }}>Completed</span>
-                <span style={{ color: C.slate, marginLeft: "auto", fontSize: 11, fontFamily: mono }}>{latestRun.solver_status || "\u2014"}</span>
+    <div className="fade-in" style={{ padding: isMobile ? 16 : 32, maxWidth: 1400, margin: "0 auto", width: "100%", paddingBottom: 60 }}>
+      {isAdmin ? (
+        <>
+          {/* Admin Header */}
+          <div style={{ marginBottom: 32, display: "flex", justifyContent: "space-between", alignItems: "flex-start", flexWrap: "wrap", gap: 16 }}>
+            <div>
+              <div style={{ fontSize: 24, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em", marginBottom: 8 }}>
+                CARGOSYNC NETWORK CONTROL CENTER
               </div>
-              <div style={{ fontSize: 11.5, color: C.slate }}>
-                {routeCount} route{routeCount !== 1 ? "s" : ""} generated \u00B7 {optMetrics?.savings?.comparable_workload_count ?? 0} orders optimized
+              <div style={{ fontSize: 14.5, color: C.slate, maxWidth: 650, lineHeight: 1.5 }}>
+                Monitor operators, demand, fleet capacity, optimization activity, routes, and network impact from a single control layer.
               </div>
-              {optMetrics && (
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, marginTop: 4 }}>
-                  <MiniRow label="Baseline Distance" value={`${(optMetrics.baseline.distance_meters / 1000).toFixed(1)} km`} />
-                  <MiniRow label="Optimized Distance" value={`${(optMetrics.optimized.distance_meters / 1000).toFixed(1)} km`} accent />
-                  <MiniRow label="Baseline Vehicles" value={optMetrics.baseline.vehicles_used.toString()} />
-                  <MiniRow label="Optimized Vehicles" value={optMetrics.optimized.vehicles_used.toString()} accent />
+            </div>
+            <div style={{ display: "flex", alignItems: "center", gap: 8, background: "rgba(30,143,107,0.1)", color: C.emerald, padding: "6px 12px", borderRadius: 999, fontWeight: 600, fontSize: 12, border: "1px solid rgba(30,143,107,0.2)" }}>
+              <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.emerald }} />
+              NETWORK LIVE
+            </div>
+          </div>
+
+          {/* Section 1 - Network Operational Snapshot */}
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 16, marginBottom: 32, opacity: fetchStatus === "loading" ? 0.6 : 1 }}>
+            <MetricCard icon={<MapPin size={16} color={C.navy} />} label="Active Hubs" value={totals ? totals.depots.toString() : "\u2014"} sub="Network nodes" />
+            <MetricCard icon={<Package size={16} color={C.navy} />} label="Total Orders" value={totals ? totals.orders.toString() : "\u2014"} sub="Consolidated demand" />
+            <MetricCard icon={<Truck size={16} color={C.navy} />} label="Total Vehicles" value={totals ? totals.fleet.toString() : "\u2014"} sub="Network capacity" />
+            <MetricCard icon={<Route size={16} color={C.coral} />} label="Active Routes" value={routeCount.toString()} sub="Optimized paths" accent />
+          </div>
+
+          {/* Section 2 - Network Operations Flow */}
+          <div style={{ marginBottom: 32 }}>
+            <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, marginBottom: 16, letterSpacing: "-0.01em" }}>Network Pipeline</div>
+            <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", gap: 16 }}>
+              <WorkflowStep icon={<MapPin size={18} color={C.navy} />} title="Network Hubs" count={totals?.depots || 0} desc="Active depot locations" />
+              <WorkflowStep icon={<Package size={18} color={C.navy} />} title="Orders" count={totals?.orders || 0} desc="Total demand" />
+              <WorkflowStep icon={<RefreshCw size={18} color={C.coral} />} title="Optimization" count={hasOptimization ? 1 : 0} desc="Network-wide run" accent />
+              <WorkflowStep icon={<Route size={18} color={C.navy} />} title="Routes" count={routeCount} desc="Optimized paths" />
+              <WorkflowStep icon={<TrendingDown size={18} color={C.emerald} />} title="Return Loads" count={totals?.returnLoads || 0} desc="Matched backhauls" />
+            </div>
+          </div>
+
+          {/* Section 3 - Network Map & Optimization Status */}
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 340px", gap: 24, marginBottom: 32 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div>
+                <div style={{ fontSize: 16, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em" }}>Network Operations Map</div>
+                <div style={{ fontSize: 13, color: C.slate, marginTop: 4 }}>Live network view across participating operators, orders, vehicles and return-load activity.</div>
+              </div>
+              <div style={{ height: 440, borderRadius: 12, overflow: "hidden", border: `1px solid ${C.stone}`, position: "relative", zIndex: 1 }}>
+                <NetworkMap />
+              </div>
+            </div>
+
+            <div style={{ display: "flex", flexDirection: "column", gap: 24, marginTop: isMobile ? 0 : 58 }}>
+              {/* Section 4 - Optimization Status */}
+              <div style={{ background: C.navy, borderRadius: 12, padding: 24, color: C.ivory, border: `1px solid ${C.charcoal}` }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: C.peach, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 16 }}>Optimization Status</div>
+                <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                  <div>
+                    <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 2 }}>Latest Run</div>
+                    <div style={{ fontSize: 13, fontFamily: mono, fontWeight: 600 }}>{latestRun?.run_id ? latestRun.run_id.slice(0, 18) + "..." : "No run found"}</div>
+                  </div>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+                    <div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 2 }}>Status</div>
+                      <div style={{ fontSize: 13, fontWeight: 600, color: hasOptimization ? C.emerald : C.coral }}>{latestRun?.status || "\u2014"}</div>
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 11, color: "rgba(255,255,255,0.6)", marginBottom: 2 }}>Routes Generated</div>
+                      <div style={{ fontSize: 13, fontWeight: 600 }}>{routeCount}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Section 6 - Network Impact */}
+              {hasOptimization && (
+                <div style={{ background: C.ivory, borderRadius: 12, padding: 24, border: `1px solid ${C.stone}` }}>
+                  <div style={{ fontSize: 12, fontWeight: 600, color: C.slate, textTransform: "uppercase", letterSpacing: 0.5, marginBottom: 16 }}>Network Impact</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+                    <MiniRow label="Distance Saved" value={distSavedKm !== null ? `${distSavedKm} km` : "\u2014"} />
+                    <MiniRow label="Cost Saved" value={costSaved !== null ? `\u20B9${Math.round(costSaved).toLocaleString("en-IN")}` : "\u2014"} accent />
+                    <MiniRow label="Vehicles Used" value={optMetrics?.optimized.vehicles_used.toString() || "\u2014"} />
+                    <MiniRow label="CO₂ Avoided" value={co2Saved !== null ? `${Math.round(co2Saved)} kg` : "\u2014"} />
+                  </div>
                 </div>
               )}
             </div>
-          )}
-        </Panel>
+          </div>
 
-        {/* Return-Load Opportunities — real API data */}
-        <Panel title="Return-Load Opportunities">
-          {fetchStatus === "loading" && !returnLoads ? (
-            <div role="status" aria-label="Loading return loads" style={{ padding: "20px 0", display: "flex", justifyContent: "center" }}><Loader2 size={16} color={C.slate} className="spin" aria-hidden="true" /></div>
-          ) : !returnLoads || returnLoads.length === 0 ? (
-            <div role="status" aria-label="No return loads" style={{ fontSize: 12.5, color: C.slate, padding: "8px 0" }}>No return loads in this scenario.</div>
-          ) : returnLoads.map((r) => (
-            <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: `1px solid ${C.stone}`, fontSize: 12.5 }}>
-              <div>
-                <div style={{ fontFamily: mono }}>{r.reference_number || r.id.slice(0, 8)}</div>
-                {r.operator?.name && <div style={{ fontSize: 10.5, color: C.slate }}>{r.operator.name}</div>}
-              </div>
-              {r.status === "CANDIDATE" ? (
-                <button onClick={() => onAssign(r.id)} style={{ background: C.coral, color: C.ivory, border: "none", borderRadius: 4, padding: "4px 9px", fontSize: 10.5, fontWeight: 600, cursor: "pointer" }}>Assign</button>
-              ) : <StatusBadge status={r.status} />}
-            </div>
-          ))}
-        </Panel>
+          {/* Section 5 - Network Activity */}
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 24 }}>
+            <Panel title="Recent Network Orders">
+              {fetchStatus === "loading" && !orders ? (
+                <div style={{ padding: 20, textAlign: "center" }}><Loader2 size={16} color={C.slate} className="spin" /></div>
+              ) : !orders || orders.length === 0 ? (
+                <div style={{ fontSize: 13, color: C.slate, padding: "10px 0" }}>No active orders across the network.</div>
+              ) : (
+                orders.slice(0, 5).map((o: any) => (
+                  <div key={o.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${C.stone}` }}>
+                    <div>
+                      <div style={{ fontWeight: 600, color: C.ink, fontSize: 13, fontFamily: mono, marginBottom: 2 }}>{o.reference_number || o.id.slice(0, 8)}</div>
+                      <div style={{ fontSize: 11.5, color: C.slate }}>{o.pickup_location?.name || "Pickup"} → {o.delivery_location?.name || "Delivery"}</div>
+                    </div>
+                    <StatusBadge status={o.status || "PENDING"} />
+                  </div>
+                ))
+              )}
+            </Panel>
 
-        {/* Regional Depots — real API data */}
-        <Panel title="Regional Depots">
-          {fetchStatus === "loading" && !depots ? (
-            <div role="status" aria-label="Loading depots" style={{ padding: "20px 0", display: "flex", justifyContent: "center" }}><Loader2 size={16} color={C.slate} className="spin" aria-hidden="true" /></div>
-          ) : !depots || depots.length === 0 ? (
-            <div role="status" aria-label="No depots" style={{ fontSize: 12.5, color: C.slate, padding: "8px 0" }}>No depots found.</div>
-          ) : depots.map((d) => (
-            <div key={d.id} style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontSize: 12.5 }}>
-              <span>{d.name}</span>
-              <span style={{ color: C.slate, fontSize: 11 }}>{d.operator?.name || "Depot"}</span>
-            </div>
-          ))}
-        </Panel>
+            <Panel title="Network Return-Load Activity">
+              {fetchStatus === "loading" && !returnLoads ? (
+                <div style={{ padding: 20, textAlign: "center" }}><Loader2 size={16} color={C.slate} className="spin" /></div>
+              ) : !returnLoads || returnLoads.length === 0 ? (
+                <div style={{ fontSize: 13, color: C.slate, padding: "10px 0" }}>No return-load activity on the network.</div>
+              ) : (
+                returnLoads.slice(0, 5).map((r: any) => (
+                  <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${C.stone}` }}>
+                    <div>
+                      <div style={{ fontWeight: 600, color: C.ink, fontSize: 13, fontFamily: mono, marginBottom: 2 }}>{r.reference_number || r.id.slice(0, 8)}</div>
+                      <div style={{ fontSize: 11.5, color: C.slate }}>{r.origin?.name || "Origin"} → {r.destination?.name || "Destination"}</div>
+                    </div>
+                    <StatusBadge status={r.status || "PENDING"} />
+                  </div>
+                ))
+              )}
+            </Panel>
+          </div>
+        </>
+      ) : (
+        <>
+          {/* Header */}
+      <div style={{ marginBottom: 32, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <div>
+          <div style={{ fontSize: 24, fontWeight: 700, color: C.ink, letterSpacing: "-0.01em" }}>
+            {profile?.operator_name || "Shree Balaji Logistics"}
+          </div>
+          <div style={{ fontSize: 14, color: C.slate }}>
+            Indore, Madhya Pradesh
+          </div>
+        </div>
+        <div style={{ fontSize: 11, fontWeight: 700, padding: "4px 10px", borderRadius: 999, background: "rgba(30,143,107,0.12)", color: C.emerald, border: `1px solid ${C.emerald}33` }}>OPERATIONAL</div>
       </div>
-    </div>
-  );
-}
 
-/** Small stat card for optimization savings row */
-function MiniStat({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
-  return (
-    <div className="c-card-hover" style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: "10px 12px" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 6, marginBottom: 4 }}>
-        {icon}
-        <span style={{ fontSize: 10.5, color: C.slate }}>{label}</span>
+        {/* Section 1 - Operational Snapshot */}
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 16, marginBottom: 32, opacity: fetchStatus === "loading" ? 0.6 : 1 }}>
+          <MetricCard icon={<Package size={16} color={C.navy} />} label="My Orders" value={totals ? totals.orders.toString() : "\u2014"} sub="Active delivery demand" />
+          <MetricCard icon={<Truck size={16} color={C.navy} />} label="My Vehicles" value={totals ? totals.fleet.toString() : "\u2014"} sub="Available capacity" />
+          <MetricCard icon={<Gauge size={16} color={C.navy} />} label="Current Utilization" value={metrics ? `${metrics.utilization_pct}%` : "\u2014"} sub="Network-wide" />
+          <MetricCard icon={<MapPin size={16} color={C.coral} />} label="Active Depots" value={totals ? totals.depots.toString() : "\u2014"} sub="Network locations" accent />
+        </div>
+
+        {/* Section 2 - CargoSync Optimization */}
+        <div style={{ background: C.navy, borderRadius: 12, padding: isMobile ? "24px 20px" : "28px 36px", color: C.ivory, marginBottom: 32, display: "flex", flexDirection: isMobile ? "column" : "row", gap: 32, alignItems: isMobile ? "flex-start" : "center", position: "relative", overflow: "hidden" }}>
+          <div style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0, opacity: 0.05, pointerEvents: "none" }}>
+            <svg width="100%" height="100%" xmlns="http://www.w3.org/2000/svg">
+              <defs><pattern id="grid-dark" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M 40 0 L 0 0 0 40" fill="none" stroke={C.ivory} strokeWidth="1"/></pattern></defs>
+              <rect width="100%" height="100%" fill="url(#grid-dark)" />
+            </svg>
+          </div>
+          
+          <div style={{ flex: 1, position: "relative", zIndex: 1 }}>
+            <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: "0.1em", color: C.coral, marginBottom: 10 }}>CARGOSYNC OPTIMIZATION</div>
+            <div style={{ fontSize: 20, fontWeight: 600, marginBottom: 8, letterSpacing: "-0.01em" }}>{hasOptimization ? "Optimization Completed" : "Optimization Ready"}</div>
+            <div style={{ fontSize: 14.5, color: "rgba(250,246,239,0.7)", maxWidth: 420, lineHeight: 1.5 }}>
+              {hasOptimization ? "Your operational demand has been successfully coordinated with the network for improved efficiency." : "Run an optimization scenario to coordinate your orders and reduce empty miles."}
+            </div>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(3, 1fr)", gap: 16, position: "relative", zIndex: 1, width: isMobile ? "100%" : "auto" }}>
+            <div style={{ background: "rgba(250,246,239,0.1)", borderRadius: 8, padding: "16px 20px", minWidth: 120 }}>
+              <div style={{ fontSize: 12, color: "rgba(250,246,239,0.7)", marginBottom: 6 }}>Distance Saved</div>
+              <div style={{ fontSize: 24, fontWeight: 700, fontFamily: mono, color: C.coral }}>{distSavedKm !== null ? `${distSavedKm} km` : "\u2014"}</div>
+            </div>
+            <div style={{ background: "rgba(250,246,239,0.1)", borderRadius: 8, padding: "16px 20px", minWidth: 120 }}>
+              <div style={{ fontSize: 12, color: "rgba(250,246,239,0.7)", marginBottom: 6 }}>Vehicles Used</div>
+              <div style={{ fontSize: 24, fontWeight: 700, fontFamily: mono }}>{hasOptimization && optMetrics ? optMetrics.optimized.vehicles_used : "\u2014"}</div>
+            </div>
+            <div style={{ background: "rgba(250,246,239,0.1)", borderRadius: 8, padding: "16px 20px", minWidth: 120, gridColumn: isMobile ? "span 2" : "auto" }}>
+              <div style={{ fontSize: 12, color: "rgba(250,246,239,0.7)", marginBottom: 6 }}>Cost Saved</div>
+              <div style={{ fontSize: 24, fontWeight: 700, fontFamily: mono, color: C.emerald }}>{costSaved !== null ? `\u20B9${Math.round(costSaved).toLocaleString("en-IN")}` : "\u2014"}</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 3 - Operational Workflow */}
+        <div style={{ marginBottom: 32 }}>
+          <div style={{ fontSize: 18, fontWeight: 700, color: C.ink, marginBottom: 16, letterSpacing: "-0.01em" }}>Operational Workflow</div>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(5, 1fr)", gap: 16 }}>
+            <WorkflowStep icon={<Package size={18} color={C.navy} />} title="My Orders" count={totals?.orders || 0} desc="Active delivery demand" />
+            <WorkflowStep icon={<Truck size={18} color={C.navy} />} title="My Vehicles" count={totals?.fleet || 0} desc="Active capacity" />
+            <WorkflowStep icon={<RefreshCw size={18} color={C.coral} />} title="Optimization" count={hasOptimization ? 1 : 0} desc="Coordination run" accent />
+            <WorkflowStep icon={<Route size={18} color={C.navy} />} title="Assigned Routes" count={routeCount} desc="Optimized plan" />
+            <WorkflowStep icon={<TrendingDown size={18} color={C.emerald} />} title="Return Loads" count={totals?.returnLoads || 0} desc="Matched backhauls" />
+          </div>
+        </div>
+
+        {/* Section 4 - Recent/Priority Operations & Return Loads */}
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 24 }}>
+          {/* Recent Orders */}
+          <Panel title="Priority Orders">
+            {fetchStatus === "loading" && !orders ? (
+              <div style={{ padding: 20, textAlign: "center" }}><Loader2 size={16} color={C.slate} className="spin" /></div>
+            ) : !orders || orders.length === 0 ? (
+              <div style={{ fontSize: 13, color: C.slate, padding: "10px 0" }}>No active orders.</div>
+            ) : (
+              orders.slice(0, 5).map((o: any) => (
+                <div key={o.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${C.stone}` }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: C.ink, fontSize: 13, fontFamily: mono, marginBottom: 2 }}>{o.reference_number || o.id.slice(0, 8)}</div>
+                    <div style={{ fontSize: 11.5, color: C.slate }}>{o.pickup_location?.name || "Pickup"} → {o.delivery_location?.name || "Delivery"}</div>
+                  </div>
+                  <StatusBadge status={o.status || "PENDING"} />
+                </div>
+              ))
+            )}
+          </Panel>
+
+          {/* Return Loads */}
+          <Panel title="Return-Load Opportunities">
+            {fetchStatus === "loading" && !returnLoads ? (
+              <div style={{ padding: 20, textAlign: "center" }}><Loader2 size={16} color={C.slate} className="spin" /></div>
+            ) : !returnLoads || returnLoads.length === 0 ? (
+              <div style={{ fontSize: 13, color: C.slate, padding: "10px 0" }}>No return-load opportunities found.</div>
+            ) : (
+              returnLoads.slice(0, 5).map((r: any) => (
+                <div key={r.id} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0", borderBottom: `1px solid ${C.stone}` }}>
+                  <div>
+                    <div style={{ fontWeight: 600, color: C.ink, fontSize: 13, fontFamily: mono, marginBottom: 2 }}>{r.reference_number || r.id.slice(0, 8)}</div>
+                    <div style={{ fontSize: 11.5, color: C.slate }}>{r.origin?.name || "Origin"} → {r.destination?.name || "Destination"}</div>
+                  </div>
+                  {r.status === "CANDIDATE" ? (
+                    <button onClick={() => onAssign(r.id)} style={{ background: C.coral, color: C.ivory, border: "none", borderRadius: 4, padding: "6px 12px", fontSize: 11, fontWeight: 600, cursor: "pointer", transition: "background 0.2s" }} className="c-btn-hover">Assign</button>
+                  ) : <StatusBadge status={r.status} />}
+                </div>
+              ))
+            )}
+          </Panel>
+        </div>
+        </>
+      )}
       </div>
-      <div style={{ fontSize: 16, fontWeight: 700, fontFamily: mono, color: C.ink }}>{value}</div>
-    </div>
-  );
-}
+    );
+  }
 
-/** Compact row for optimization baseline vs optimized comparison */
+
+
+
+
 function MiniRow({ label, value, accent }: { label: string; value: string; accent?: boolean }) {
   return (
     <div style={{ fontSize: 11.5, display: "flex", justifyContent: "space-between" }}>
       <span style={{ color: C.slate }}>{label}</span>
       <span style={{ fontFamily: mono, fontWeight: 600, color: accent ? C.coral : C.ink }}>{value}</span>
+    </div>
+  );
+}
+
+/** Business Dashboard Workflow Step Card */
+function WorkflowStep({ icon, title, count, desc, accent }: any) {
+  return (
+    <div className="c-card-hover" style={{ background: C.ivory, border: `1px solid ${accent ? C.coral : C.stone}`, borderRadius: 10, padding: 20, display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ width: 36, height: 36, borderRadius: 8, background: accent ? "rgba(232,84,46,0.1)" : "rgba(27,35,51,0.06)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+        {icon}
+      </div>
+      <div>
+        <div style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 4 }}>{title}</div>
+        <div style={{ fontSize: 12, color: C.slate }}>{desc}</div>
+      </div>
+      <div style={{ marginTop: "auto", fontSize: 20, fontWeight: 700, fontFamily: mono, color: accent ? C.coral : C.ink }}>
+        {count}
+      </div>
     </div>
   );
 }

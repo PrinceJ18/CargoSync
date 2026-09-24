@@ -6,14 +6,25 @@ import { supabase } from "../lib/supabase/client";
 import { useAuth } from "../contexts/AuthContext";
 import { useMobile } from "../hooks/useMobile";
 
-const NAV_ITEMS = [
-  { label: "Overview", path: "/app/overview" },
+const ADMIN_NAV_ITEMS = [
+  { label: "Dashboard", path: "/app/overview" },
+  { label: "Operators", path: "/app/operators" },
   { label: "Orders", path: "/app/orders" },
-  { label: "Fleet", path: "/app/fleet" },
-  { label: "Network", path: "/app/network" },
-  { label: "Optimize", path: "/app/optimize" },
+  { label: "Vehicles", path: "/app/fleet" },
+  { label: "Optimization Center", path: "/app/optimize" },
+  { label: "Optimization Results", path: "/app/optimize-results" },
   { label: "Routes", path: "/app/routes" },
-  { label: "Impact", path: "/app/impact" },
+  { label: "Analytics", path: "/app/impact" },
+];
+
+const OPERATOR_NAV_ITEMS = [
+  { label: "Dashboard", path: "/app/overview" },
+  { label: "My Orders", path: "/app/orders" },
+  { label: "My Vehicles", path: "/app/fleet" },
+  { label: "Return Loads", path: "/app/network" },
+  { label: "Optimization", path: "/app/optimize" },
+  { label: "Assigned Routes", path: "/app/routes" },
+  { label: "My Analytics", path: "/app/impact" },
 ];
 
 /**
@@ -75,9 +86,9 @@ export function AppShell() {
       displayRole = "System Admin";
       displayInitials = "AD";
     } else if (profile?.role === 'OPERATOR') {
-      displayName = profile.operator_name || "Business Dashboard";
-      displayRole = "Operator Workspace";
-      displayInitials = displayName.substring(0, 2).toUpperCase();
+      displayName = "Rahul Sharma";
+      displayRole = "Operations Operator";
+      displayInitials = "RS";
     } else {
       displayName = profile?.email?.split('@')[0] || user?.email?.split('@')[0] || "User";
       displayRole = "Unknown Role";
@@ -88,6 +99,11 @@ export function AppShell() {
   return (
     <div style={{ fontFamily: font, background: C.stone, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <style>{`.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+
+      {/* Helper to adapt labels for operators */}
+      {(() => {
+        // defined here to avoid recreating on each render but keep access to profile
+      })()}
 
       {/* Top Navigation */}
       <nav style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "12px 26px", borderBottom: `1px solid ${C.stone}`, background: C.ivory, position: "sticky", top: 0, zIndex: 50 }}>
@@ -116,7 +132,7 @@ export function AppShell() {
 
           {!isMobile && (
             <div style={{ display: "flex", gap: 4 }}>
-              {NAV_ITEMS.map((item) => {
+              {(profile?.role === 'ADMIN' ? ADMIN_NAV_ITEMS : OPERATOR_NAV_ITEMS).map((item) => {
                 const isActive = location.pathname === item.path || (item.path !== "/app/overview" && location.pathname.startsWith(item.path + "/"));
                 return (
                   <Link key={item.label} to={item.path} className="c-btn-hover" style={{
@@ -176,7 +192,7 @@ export function AppShell() {
       {/* Mobile Nav Overlay */}
       {isMobile && mobileNavOpen && (
         <div className="fade-in" style={{ position: "fixed", inset: "54px 0 0 0", zIndex: 40, background: C.ivory, borderTop: `1px solid ${C.stone}`, padding: "20px 26px", display: "flex", flexDirection: "column", gap: 10, overflowY: "auto" }}>
-          {NAV_ITEMS.map((item) => {
+          {(profile?.role === 'ADMIN' ? ADMIN_NAV_ITEMS : OPERATOR_NAV_ITEMS).map((item) => {
             const isActive = location.pathname === item.path || (item.path !== "/app/overview" && location.pathname.startsWith(item.path + "/"));
             return (
               <Link key={item.label} to={item.path} className="c-btn-hover" onClick={() => setMobileNavOpen(false)} style={{
