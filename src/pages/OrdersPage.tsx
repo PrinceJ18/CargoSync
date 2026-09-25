@@ -170,8 +170,8 @@ export function OrdersPage() {
             {ORDER_STATUSES.map((s) => <option key={s} value={s}>{s}</option>)}
           </select>
           <select aria-label="Select Scenario" value={scenario} onChange={(e) => handleScenarioChange(e.target.value)} disabled={fetchStatus === "loading"} style={{ padding: "8px 12px", borderRadius: 6, border: `1px solid ${C.stone}`, fontSize: 13, background: C.cream, color: C.ink, fontWeight: 500, cursor: "pointer", outline: "none" }}>
-            <option value="DEMO">Demo Scenario</option>
-            <option value="NETWORK">Network Scenario</option>
+            <option value="DEMO">Indore Regional Operations</option>
+            <option value="NETWORK">Extended Network Operations</option>
           </select>
           {fetchStatus === "loading" && data && <Loader2 size={16} color={C.slate} className="spin" aria-hidden="true" style={{ marginLeft: "auto" }} />}
         </div>

@@ -119,9 +119,9 @@ export function DashboardPage() {
           {/* Section 1 - Network Operational Snapshot */}
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr 1fr" : "repeat(4, 1fr)", gap: 16, marginBottom: 32, opacity: fetchStatus === "loading" ? 0.6 : 1 }}>
             <MetricCard icon={<MapPin size={16} color={C.navy} />} label="Active Hubs" value={totals ? totals.depots.toString() : "\u2014"} sub="Network nodes" />
-            <MetricCard icon={<Package size={16} color={C.navy} />} label="Total Orders" value={totals ? totals.orders.toString() : "\u2014"} sub="Consolidated demand" />
-            <MetricCard icon={<Truck size={16} color={C.navy} />} label="Total Vehicles" value={totals ? totals.fleet.toString() : "\u2014"} sub="Network capacity" />
-            <MetricCard icon={<Route size={16} color={C.coral} />} label="Active Routes" value={routeCount.toString()} sub="Optimized paths" accent />
+            <MetricCard icon={<Package size={16} color={C.navy} />} label="Network Orders" value={totals ? totals.orders.toString() : "\u2014"} sub="Consolidated demand" />
+            <MetricCard icon={<Truck size={16} color={C.navy} />} label="Network Vehicles" value={totals ? totals.fleet.toString() : "\u2014"} sub="Network capacity" />
+            <MetricCard icon={<Route size={16} color={C.coral} />} label="Optimized Routes" value={routeCount.toString()} sub="Optimized paths" accent />
           </div>
 
           {/* Section 2 - Network Operations Flow */}

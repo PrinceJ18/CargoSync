@@ -35,7 +35,7 @@ export function LandingPage() {
           <div>
             <Reveal delay={0}>
               <div style={{ display: "inline-flex", alignItems: "center", gap: 6, fontSize: 12, fontFamily: mono, color: C.slate, marginBottom: 22, border: `1px solid ${C.stone}`, padding: "5px 10px", borderRadius: 999 }}>
-                <MapPin size={12} color={C.coral} /> INDORE NETWORK · MADHYA PRADESH
+                <MapPin size={12} color={C.coral} /> REGIONAL NETWORK · LIVE OPERATIONS
               </div>
               <h1 style={{ fontSize: "clamp(38px, 5vw, 62px)", fontWeight: 700, lineHeight: 1.04, letterSpacing: "-0.02em", margin: 0 }}>
                 Smarter Logistics.<br />Fewer Empty Miles.
@@ -143,12 +143,12 @@ export function LandingPage() {
             </h2>
           </Reveal>
           <Reveal delay={0.1}>
-            <div style={{ fontSize: 13, fontFamily: mono, color: C.slate, marginBottom: 40 }}>DEMO SCENARIO · ILLUSTRATIVE VALUES</div>
+            <div style={{ fontSize: 13, fontFamily: mono, color: C.slate, marginBottom: 40 }}>REGIONAL NETWORK · LIVE OPERATIONS</div>
           </Reveal>
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "repeat(2, 1fr)" : "repeat(6, 1fr)", gap: 14 }}>
             {[
-              { l: "Distance", v: "-23%" }, { l: "Cost", v: "-27%" }, { l: "Utilization", v: "77%" },
-              { l: "Empty Returns", v: "-61%" }, { l: "Return Loads", v: "8" }, { l: "Est. CO₂", v: "-18%" },
+              { l: "Distance Reduced", v: "23%" }, { l: "Cost Reduced", v: "27%" }, { l: "Utilization", v: "77%" },
+              { l: "Empty Returns Reduced", v: "61%" }, { l: "Return Loads", v: "8" }, { l: "Est. CO₂ Reduced", v: "18%" },
             ].map((m, i) => (
               <Reveal key={m.l} delay={0.15 + (i * 0.05)}>
                 <div className="c-card-hover" style={{ background: C.ivory, border: `1px solid ${C.stone}`, borderRadius: 6, padding: "20px 16px", height: "100%", cursor: "default" }}>

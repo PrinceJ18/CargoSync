@@ -144,8 +144,8 @@ export function NetworkPage() {
               onChange={(e) => setScenario(e.target.value)}
               style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: `1px solid ${C.stone}`, fontSize: 13, background: C.ivory, cursor: "pointer" }}
             >
-              <option value="DEMO">Regional Network (Standard)</option>
-              <option value="NETWORK">Extended Network (High Volume)</option>
+              <option value="DEMO">Indore Regional Operations</option>
+              <option value="NETWORK">Extended Network Operations</option>
             </select>
           </div>
         </div>
@@ -317,8 +317,8 @@ export function NetworkPage() {
             onChange={(e) => setScenario(e.target.value)}
             style={{ width: "100%", padding: "8px 12px", borderRadius: 6, border: `1px solid ${C.stone}`, fontSize: 13, background: C.ivory, cursor: "pointer" }}
           >
-            <option value="DEMO">Indore Regional Network</option>
-            <option value="NETWORK">Extended Network</option>
+            <option value="DEMO">Indore Regional Operations</option>
+            <option value="NETWORK">Extended Network Operations</option>
           </select>
         </div>
       </div>
