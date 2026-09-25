@@ -105,7 +105,7 @@ export function HeroNetwork() {
           {stage === "dbscan" && "2 clusters found · 1 outlier"}
           {stage === "capacity" && "920 / 1200 kg · 77%"}
           {stage === "route" && "Route generated via OR-Tools"}
-          {stage === "delivery" && "Delivering to Cluster B"}
+          {stage === "delivery" && "Delivering to destination cluster"}
           {stage === "returnload" && `${returnLoad.id} · ${returnLoad.weightKg} kg compatible`}
           {stage === "result" && "RETURN LOAD ASSIGNED"}
         </span>

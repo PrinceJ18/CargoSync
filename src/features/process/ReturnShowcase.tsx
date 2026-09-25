@@ -8,12 +8,12 @@ export function ReturnShowcase() {
     <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.1fr 1fr", gap: 40, alignItems: "center" }}>
       <Reveal>
         <div>
-        <div style={{ fontFamily: mono, fontSize: 12, color: C.coral, marginBottom: 12 }}>TRK-IND-04 · INDORE → PITHAMPUR</div>
+        <div style={{ fontFamily: mono, fontSize: 12, color: C.coral, marginBottom: 12 }}>VEHICLE ROUTE · ORIGIN → DESTINATION</div>
         <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
           {[
             { label: "Delivery completed", sub: "Cargo dropped at destination" },
             { label: "Remaining capacity", sub: "280 kg available on return leg" },
-            { label: "Compatible shipment found", sub: "RL-IND-006 · Pithampur → Indore" },
+            { label: "Compatible shipment found", sub: "RETURN LOAD · DESTINATION → ORIGIN" },
             { label: "Return load assigned", sub: "Capacity, time, distance and sharing all satisfied" },
           ].map((row, i, arr) => (
             <Reveal key={i} delay={0.1 * i}>
