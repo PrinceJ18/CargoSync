@@ -156,7 +156,20 @@ def build_sql():
                     ref = generate_mp_registration()
                 assigned_regs.add(ref)
                 
-                vehicle_sql.append(f"  ('{v_id}', '{op['id']}', '{scenario}', '{ref}', '{v_type}', {cap}, 'AVAILABLE', '{depot_id}')")
+                # Meaningful vehicle statuses
+                if scenario == 'DEMO':
+                    # Only mix statuses for DEMO (or both)
+                    r = random.random()
+                    if r < 0.6:
+                        v_status = 'AVAILABLE'
+                    elif r < 0.9:
+                        v_status = 'IN_TRANSIT'
+                    else:
+                        v_status = 'MAINTENANCE'
+                else:
+                    v_status = 'AVAILABLE'
+
+                vehicle_sql.append(f"  ('{v_id}', '{op['id']}', '{scenario}', '{ref}', '{v_type}', {cap}, '{v_status}', '{depot_id}')")
                 
             # ORDERS
             num_orders = 50 if scenario == 'DEMO' else random.randint(20, 30)
@@ -193,7 +206,21 @@ def build_sql():
                 p_start, p_end = generate_time_windows()
                 d_start, d_end = generate_time_windows()
                 
-                order_sql.append(f"  ('{o_id}', '{op['id']}', '{scenario}', '{ref}', '{depot_id}', 'SRID=4326;POINT({olon} {olat})', {weight}, 'PENDING', {p_start}, {p_end}, {d_start}, {d_end})")
+                # Meaningful order statuses
+                if scenario == 'DEMO':
+                    r = random.random()
+                    if r < 0.4:
+                        o_status = 'PENDING'
+                    elif r < 0.7:
+                        o_status = 'ASSIGNED'
+                    elif r < 0.9:
+                        o_status = 'IN_TRANSIT'
+                    else:
+                        o_status = 'DELIVERED'
+                else:
+                    o_status = 'PENDING'
+                
+                order_sql.append(f"  ('{o_id}', '{op['id']}', '{scenario}', '{ref}', '{depot_id}', 'SRID=4326;POINT({olon} {olat})', {weight}, '{o_status}', {p_start}, {p_end}, {d_start}, {d_end})")
                 
             # RETURN LOADS
             num_return_loads = random.randint(5, 10) if scenario == 'DEMO' else random.randint(3, 8)
@@ -212,7 +239,19 @@ def build_sql():
                 p_start, p_end = generate_time_windows()
                 d_start, d_end = generate_time_windows()
                 
-                return_load_sql.append(f"  ('{rl_id}', '{op['id']}', '{scenario}', '{ref}', 'SRID=4326;POINT({p_lon} {p_lat})', 'SRID=4326;POINT({d_lon} {d_lat})', {weight}, 'PENDING', {p_start}, {p_end}, {d_start}, {d_end})")
+                # Meaningful return load statuses
+                if scenario == 'DEMO':
+                    r = random.random()
+                    if r < 0.7:
+                        rl_status = 'PENDING' # Available opportunity
+                    elif r < 0.9:
+                        rl_status = 'MATCHED'
+                    else:
+                        rl_status = 'FULFILLED'
+                else:
+                    rl_status = 'PENDING'
+                
+                return_load_sql.append(f"  ('{rl_id}', '{op['id']}', '{scenario}', '{ref}', 'SRID=4326;POINT({p_lon} {p_lat})', 'SRID=4326;POINT({d_lon} {d_lat})', {weight}, '{rl_status}', {p_start}, {p_end}, {d_start}, {d_end})")
     
     sql.append("-- 2. DEPOTS")
     sql.append("INSERT INTO public.depots (id, operator_id, scenario, name, address, location) VALUES")
@@ -236,7 +275,21 @@ def build_sql():
     sql.append(",\n".join(return_load_sql))
     sql.append("ON CONFLICT (id) DO UPDATE SET operator_id=EXCLUDED.operator_id, scenario=EXCLUDED.scenario, reference_number=EXCLUDED.reference_number, pickup_location=EXCLUDED.pickup_location, delivery_location=EXCLUDED.delivery_location, weight_kg=EXCLUDED.weight_kg, status=EXCLUDED.status, pickup_window_start=EXCLUDED.pickup_window_start, pickup_window_end=EXCLUDED.pickup_window_end, delivery_window_start=EXCLUDED.delivery_window_start, delivery_window_end=EXCLUDED.delivery_window_end;")
     sql.append("")
-    
+    # 6. Profiles
+    sql.append("-- 6. PROFILES (Authentication/Authorization mapping)")
+    profiles = [
+        "('f47431e9-6917-4f81-ae46-2e7bf3e7ed0c', 'ADMIN', NULL)", # admin@cargosync.com
+        "('81ceea0f-ba43-4818-a457-58ad318ab871', 'ADMIN', NULL)", # admin@cargosync.ai
+        "('81520c76-f213-40b8-9890-ed5ec46a217f', 'ADMIN', NULL)", # princejain.1218@gmail.com
+        "('87e27dda-bcdf-4d2a-8f88-56cc22b049f5', 'ADMIN', NULL)", # 238.prince.j@gmail.com
+        f"('0308d407-0c5e-4b24-a19b-70235d9053cb', 'OPERATOR', '{OPERATORS[0]['id']}')", # shree.balaji.log01@gmail.com
+        f"('c6ce0adb-f95b-4a6e-97e8-1c6fe5549775', 'OPERATOR', '{OPERATORS[0]['id']}')", # demoemail@gmail.com
+    ]
+    sql.append("INSERT INTO public.profiles (id, role, operator_id) VALUES")
+    sql.append(",\n".join(profiles))
+    sql.append("ON CONFLICT (id) DO UPDATE SET role = EXCLUDED.role, operator_id = EXCLUDED.operator_id;")
+    sql.append("")
+
     with open(SEED_FILE, 'w', encoding='utf-8') as f:
         f.write("\n".join(sql))
         
