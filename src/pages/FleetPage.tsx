@@ -101,7 +101,7 @@ export function FleetPage() {
     setSelected(null);
   };
 
-  const selectStyle = { padding: "7px 10px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 12.5, background: C.ivory };
+
 
   // ─── LOADING ───
   if (fetchStatus === "loading" && !data) {

@@ -2,7 +2,7 @@ import { useState, useEffect, useCallback } from "react";
 import { X, Loader2, AlertCircle, RefreshCw, ChevronLeft, ChevronRight, Search } from "lucide-react";
 import { C, mono } from "../data/prototype/designTokens";
 import { StatusBadge } from "../components/shared/StatusBadge";
-import { Row } from "../components/shared/Row";
+
 import { useAuth } from "../contexts/AuthContext";
 import { useMobile } from "../hooks/useMobile";
 import type { Order, PaginatedResponse } from "../types/api";
@@ -101,7 +101,7 @@ export function OrdersPage() {
     setSelected(null);
   };
 
-  const selectStyle = { padding: "7px 10px", borderRadius: 4, border: `1px solid ${C.stone}`, fontSize: 12.5, background: C.ivory };
+
 
   // ─── LOADING ───
   if (fetchStatus === "loading" && !data) {

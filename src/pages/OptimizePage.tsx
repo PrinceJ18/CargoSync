@@ -4,16 +4,11 @@ import { useNavigate } from "react-router-dom";
 import { useAuth } from "../contexts/AuthContext";
 import { C, mono } from "../data/prototype/designTokens";
 import { useMobile } from "../hooks/useMobile";
-import { Panel } from "../components/shared/Panel";
-import { Reveal } from "../components/shared/Reveal";
-import { ResultComparison } from "../features/process/ResultComparison";
+
 import type { OptimizationRunResponse } from "../types/api";
 import { AdminOptimizationPage } from "./AdminOptimizationPage";
 
-const PIPELINE_STAGES = [
-  "Orders", "DBSCAN", "Cluster Validation", "Capacity",
-  "Road Costs", "Baseline", "OR-Tools", "Return Loads", "Savings", "Persistence"
-];
+
 
 
 export function OptimizePage() {

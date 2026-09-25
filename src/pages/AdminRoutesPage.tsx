@@ -2,10 +2,10 @@ import { useState, useMemo, useEffect, useRef, useCallback } from "react";
 import { MapContainer, TileLayer, Polyline, CircleMarker, Tooltip, useMap } from "react-leaflet";
 import { useNavigate } from "react-router-dom";
 import { Truck, Settings, Play, Pause, RotateCcw, AlertCircle, Loader2, RefreshCw, CheckCircle2 } from "lucide-react";
-import { useAuth } from "../contexts/AuthContext";
+
 import { useMobile } from "../hooks/useMobile";
 import { C, mono } from "../data/prototype/designTokens";
-import { Panel } from "../components/shared/Panel";
+
 import type { OptimizationRunResponse } from "../types/api";
 import L from "leaflet";
 
@@ -119,7 +119,8 @@ export function AdminRoutesPage() {
   const [returnLoads, setReturnLoads] = useState<Record<string, any>>({});
   const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "success" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
-  const [partialErrors, setPartialErrors] = useState<string[]>([]);
+  const [, setPartialErrors] = useState<string[]>([]);
+
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Animation
@@ -373,15 +374,11 @@ export function AdminRoutesPage() {
 
   // Derived detail data
   const vehRef = vehicles[route!.vehicle_id]?.reference_number || route!.vehicle_id.slice(0, 8);
-  const vehCapacity = vehicles[route!.vehicle_id]?.capacity_kg;
-  const routeRlId = typeof route!.return_load === "string" ? route!.return_load : null;
-  const routeRlRef = routeRlId ? (returnLoads[routeRlId]?.reference_number || routeRlId.slice(0, 8)) : null;
-  const hasReturnStops = route!.stops.some((s: any) => s.stop_type === "RETURN_PICKUP" || s.stop_type === "RETURN_DELIVERY");
-  const deliveryCount = route!.stops.filter((s: any) => s.stop_type === "ORDER" || (!s.stop_type && s.order_id)).length;
-  const returnPickups = route!.stops.filter((s: any) => s.stop_type === "RETURN_PICKUP");
-  const returnDeliveries = route!.stops.filter((s: any) => s.stop_type === "RETURN_DELIVERY");
 
-  const simStatusColor = playState === "completed" ? C.emerald : playState === "playing" ? C.coral : C.slate;
+  const routeRlId = typeof route!.return_load === "string" ? route!.return_load : null;
+
+
+
   const simStatusLabel = playState === "idle" ? "Ready" : playState === "playing" ? "Playing" : playState === "paused" ? "Paused" : "Complete";
 
   // ─── UI ────────────────────────────────────────────────────────
@@ -471,8 +468,7 @@ export function AdminRoutesPage() {
   );
 
   // ─── Unified Layout Branch ───
-    const totalDistAll = runData.routes.reduce((acc, r) => acc + Number(r.total_distance_meters || 0), 0);
-    const totalDurAll = runData.routes.reduce((acc, r) => acc + Number(r.total_duration_seconds || 0), 0);
+
     const matchedReturnLoads = runData.routes.filter(r => r.return_load).length;
 
     return (
@@ -603,8 +599,7 @@ export function AdminRoutesPage() {
                  
                  <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
                     {route!.stops.map((stop: any, idx: number) => {
-                      const isOrigin = idx === 0;
-                      const isDest = idx === route!.stops.length - 1;
+
                       const stopLabelText = stopLabel(stop, idx, route!.stops.length);
                       const ref = stopRef(stop);
                       
@@ -645,15 +640,7 @@ export function AdminRoutesPage() {
     );
 }
 
-// ─── Metric cell sub-component ───────────────────────────────────
-function MetricCell({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div style={{ fontSize: 10.5, color: C.slate, marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, fontFamily: mono }}>{value}</div>
-    </div>
-  );
-}
+
 
 // ─── Shared button style ─────────────────────────────────────────
 const controlBtn: React.CSSProperties = {

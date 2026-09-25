@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { CheckCircle2, RefreshCw, AlertTriangle, ArrowRight, Route as RouteIcon, Package, Truck, Clock, Navigation } from "lucide-react";
+import { CheckCircle2, RefreshCw, AlertTriangle, ArrowRight, Route as RouteIcon, Package } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { C, mono } from "../data/prototype/designTokens";
 import { useMobile } from "../hooks/useMobile";
@@ -15,7 +15,7 @@ export function AdminOptimizationResultsPage() {
 
   // Defaulting to "NETWORK" scenario for Admin, but allowing fallback to DEMO if needed.
   // In a robust implementation, this might read from global state or query params.
-  const scenario = "NETWORK"; // or "DEMO" if we prefer checking both. We can check one, if null check other.
+
 
   useEffect(() => {
     let active = true;

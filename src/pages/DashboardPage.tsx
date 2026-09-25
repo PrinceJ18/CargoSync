@@ -22,7 +22,7 @@ export function DashboardPage() {
   const [metrics, setMetrics] = useState<AnalyticsMetricsResponse | null>(null);
   const [latestRun, setLatestRun] = useState<OptimizationRunResponse | null>(null);
   const [returnLoads, setReturnLoads] = useState<any[] | null>(null);
-  const [depots, setDepots] = useState<any[] | null>(null);
+  const [, setDepots] = useState<any[] | null>(null);
   const [orders, setOrders] = useState<any[] | null>(null);
 
   // Loading / error state

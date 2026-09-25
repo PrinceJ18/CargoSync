@@ -5,8 +5,8 @@ import {
 } from "recharts";
 import { useNavigate } from "react-router-dom";
 import { Settings, AlertCircle, RefreshCw, Loader2 } from "lucide-react";
-import { C, mono } from "../data/prototype/designTokens";
-import { Panel } from "../components/shared/Panel";
+import { C } from "../data/prototype/designTokens";
+
 import { Reveal } from "../components/shared/Reveal";
 import { useMobile } from "../hooks/useMobile";
 import { useAuth } from "../contexts/AuthContext";
@@ -142,15 +142,7 @@ export function ImpactPage() {
   const bVeh = metrics?.baseline?.vehicles_used;
   const oVeh = metrics?.optimized?.vehicles_used;
 
-  const distanceData = (bDist != null && oDist != null) ? [
-    { name: "Baseline", value: parseFloat((bDist / 1000).toFixed(1)) },
-    { name: "Optimized", value: parseFloat((oDist / 1000).toFixed(1)) }
-  ] : [];
 
-  const vehicleData = (bVeh != null && oVeh != null) ? [
-    { name: "Baseline", value: bVeh },
-    { name: "Optimized", value: oVeh }
-  ] : [];
 
   const vehRedPct = (bVeh && bVeh > 0 && oVeh != null) ? ((bVeh - oVeh) / bVeh) * 100 : null;
   const distRedPct = (bDist && bDist > 0 && oDist != null) ? ((bDist - oDist) / bDist) * 100 : null;

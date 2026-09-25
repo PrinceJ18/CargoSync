@@ -5,7 +5,7 @@ import { Truck, Settings, Play, Pause, RotateCcw, AlertCircle, Loader2, RefreshC
 import { useAuth } from "../contexts/AuthContext";
 import { useMobile } from "../hooks/useMobile";
 import { C, mono } from "../data/prototype/designTokens";
-import { Panel } from "../components/shared/Panel";
+
 import { AdminRoutesPage } from "./AdminRoutesPage";
 import type { OptimizationRunResponse } from "../types/api";
 import L from "leaflet";
@@ -128,7 +128,8 @@ export function RoutesPage() {
   const [returnLoads, setReturnLoads] = useState<Record<string, any>>({});
   const [fetchStatus, setFetchStatus] = useState<"idle" | "loading" | "success" | "error">("loading");
   const [error, setError] = useState<string | null>(null);
-  const [partialErrors, setPartialErrors] = useState<string[]>([]);
+  const [, setPartialErrors] = useState<string[]>([]);
+
   const [selectedIndex, setSelectedIndex] = useState(0);
 
   // Animation
@@ -382,15 +383,14 @@ export function RoutesPage() {
 
   // Derived detail data
   const vehRef = vehicles[route!.vehicle_id]?.reference_number || route!.vehicle_id.slice(0, 8);
-  const vehCapacity = vehicles[route!.vehicle_id]?.capacity_kg;
+
   const routeRlId = typeof route!.return_load === "string" ? route!.return_load : null;
   const routeRlRef = routeRlId ? (returnLoads[routeRlId]?.reference_number || routeRlId.slice(0, 8)) : null;
-  const hasReturnStops = route!.stops.some((s: any) => s.stop_type === "RETURN_PICKUP" || s.stop_type === "RETURN_DELIVERY");
-  const deliveryCount = route!.stops.filter((s: any) => s.stop_type === "ORDER" || (!s.stop_type && s.order_id)).length;
-  const returnPickups = route!.stops.filter((s: any) => s.stop_type === "RETURN_PICKUP");
-  const returnDeliveries = route!.stops.filter((s: any) => s.stop_type === "RETURN_DELIVERY");
 
-  const simStatusColor = playState === "completed" ? C.emerald : playState === "playing" ? C.coral : C.slate;
+  const deliveryCount = route!.stops.filter((s: any) => s.stop_type === "ORDER" || (!s.stop_type && s.order_id)).length;
+
+
+
   const simStatusLabel = playState === "idle" ? "Ready" : playState === "playing" ? "Playing" : playState === "paused" ? "Paused" : "Complete";
 
   // ─── UI ────────────────────────────────────────────────────────
@@ -619,15 +619,7 @@ export function RoutesPage() {
     );
 }
 
-// ─── Metric cell sub-component ───────────────────────────────────
-function MetricCell({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <div style={{ fontSize: 10.5, color: C.slate, marginBottom: 2 }}>{label}</div>
-      <div style={{ fontSize: 15, fontWeight: 700, color: C.ink, fontFamily: mono }}>{value}</div>
-    </div>
-  );
-}
+
 
 // ─── Shared button style ─────────────────────────────────────────
 const controlBtn: React.CSSProperties = {
