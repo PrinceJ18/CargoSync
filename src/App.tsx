@@ -12,6 +12,7 @@ import { RoutesPage } from "./pages/RoutesPage";
 import { ImpactPage } from "./pages/ImpactPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
 import { OperatorsPage } from "./pages/OperatorsPage";
+import { AdminAnalyticsPage } from "./pages/AdminAnalyticsPage";
 import { AdminOptimizationResultsPage } from "./pages/AdminOptimizationResultsPage";
 import { AppShell } from "./layouts/AppShell";
 import { ErrorBoundary } from "./components/shared/ErrorBoundary";
@@ -44,6 +45,7 @@ export default function CargoSyncPrototype() {
               <Route path="optimize-results" element={<AdminOptimizationResultsPage />} />
               <Route path="routes" element={<RoutesPage />} />
               <Route path="impact" element={<ImpactPage />} />
+              <Route path="analytics" element={<AdminAnalyticsPage />} />
 
               {/* Catch-all for unknown /app/* paths */}
               <Route path="*" element={<Navigate to="/app/overview" replace />} />

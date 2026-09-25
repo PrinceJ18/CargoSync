@@ -205,8 +205,10 @@ export function LandingPage() {
       </section>
 
       {/* FOOTER */}
-      <footer style={{ padding: "40px 6%", background: C.ink, borderTop: "1px solid rgba(250,246,239,0.08)", display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 20 }}>
-        <img src="/src/assets/branding/CargoSync_name_tagline.png" alt="CargoSync" style={{ height: 20, objectFit: "contain" }} />
+      <footer style={{ padding: "40px 6%", background: C.ink, borderTop: "1px solid rgba(250,246,239,0.08)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 20 }}>
+        <div style={{ display: "flex", alignItems: "center", background: C.ivory, padding: "6px 14px", borderRadius: 999, boxShadow: "0 2px 12px rgba(0,0,0,0.15)" }}>
+          <img src="/src/assets/branding/CargoSync_name_tagline.png" alt="CargoSync" style={{ height: 20, objectFit: "contain" }} />
+        </div>
         <div style={{ display: "flex", gap: 20, flexWrap: "wrap" }}>
           {["Platform", "How it Works", "Optimization", "Impact", "Business Portal", "Admin Console"].map((t) => (
             <span key={t} style={{ color: "rgba(250,246,239,0.55)", fontSize: 12.5 }}>{t}</span>
