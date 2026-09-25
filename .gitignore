@@ -1,32 +1,120 @@
-# Logs
-logs
+# ============================================================
+# Dependencies
+# ============================================================
+
+node_modules/
+backend/.venv/
+backend/venv/
+.venv/
+venv/
+env/
+
+# ============================================================
+# Build / Distribution
+# ============================================================
+
+dist/
+dist-ssr/
+build/
+*.egg-info/
+
+# ============================================================
+# Python Cache / Test Artifacts
+# ============================================================
+
+__pycache__/
+**/__pycache__/
+*.py[cod]
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# ============================================================
+# Logs / Temporary Files
+# ============================================================
+
+logs/
 *.log
+*.tmp
+*.temp
+*.bak
+*.out
+
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-dist
-dist-ssr
-*.local
+# Test output / local generated reports
+backend_test_output.txt
+pytest_failures.txt
 
-# Editor directories and files
+# ============================================================
+# Environment Variables / Secrets
+# ============================================================
+
+.env
+.env.*
+!.env.example
+
+backend/.env
+backend/.env.*
+!backend/.env.example
+
+# ============================================================
+# Local Databases
+# ============================================================
+
+*.db
+*.sqlite
+*.sqlite3
+
+# ============================================================
+# IDE / Editor
+# ============================================================
+
 .vscode/*
 !.vscode/extensions.json
-.idea
+
+.idea/
 .DS_Store
+
 *.suo
 *.ntvs*
 *.njsproj
 *.sln
 *.sw?
 
-# Environment variables
-.env
-.env.*
-!.env.example
-backend/.env
-backend/.env.*
-!backend/.env.example
+# ============================================================
+# OS / Tooling
+# ============================================================
+
+Thumbs.db
+desktop.ini
+
+# ============================================================
+# Local Development Files
+# ============================================================
+
+*.local
+
+# ============================================================
+# Frontend Tooling
+# ============================================================
+
+.vite/
+.parcel-cache/
+
+# ============================================================
+# Python tooling / local scripts
+# ============================================================
+
+# Ignore ad-hoc local database/query scripts if they contain
+# credentials or machine-specific configuration.
+query.py
