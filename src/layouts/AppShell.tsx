@@ -14,7 +14,7 @@ const ADMIN_NAV_ITEMS = [
   { label: "Optimization Center", path: "/app/optimize" },
   { label: "Optimization Results", path: "/app/optimize-results" },
   { label: "Routes", path: "/app/routes" },
-  { label: "Analytics", path: "/app/impact" },
+  { label: "Analytics", path: "/app/analytics" },
 ];
 
 const OPERATOR_NAV_ITEMS = [
