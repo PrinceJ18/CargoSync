@@ -1,6 +1,8 @@
 import { useNavigate, Link } from "react-router-dom";
 import { C } from "../data/prototype/designTokens";
 import { useMobile } from "../hooks/useMobile";
+import CargoSyncLogo from "../assets/branding/CargoSync_Logo.png";
+import CargoSyncNameTagline from "../assets/branding/CargoSync_name_tagline.png";
 
 interface LandingNavProps {
   scrolled: boolean;
@@ -54,13 +56,13 @@ export function LandingNav({ scrolled }: LandingNavProps) {
         aria-label="CargoSync"
       >
         <img 
-          src="/src/assets/branding/CargoSync_Logo.png" 
+          src={CargoSyncLogo} 
           alt="" 
           style={{ width: 26, height: 26, objectFit: "contain" }} 
         />
         {!isMobile && (
           <img 
-            src="/src/assets/branding/CargoSync_name_tagline.png" 
+            src={CargoSyncNameTagline} 
             alt="CargoSync" 
             style={{ height: 24, objectFit: "contain" }} 
           />

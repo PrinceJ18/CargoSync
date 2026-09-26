@@ -5,6 +5,8 @@ import { C, font, mono } from "../data/prototype/designTokens";
 import { supabase } from "../lib/supabase/client";
 import { useAuth } from "../contexts/AuthContext";
 import { useMobile } from "../hooks/useMobile";
+import CargoSyncLogo from "../assets/branding/CargoSync_Logo.png";
+import CargoSyncNameTagline from "../assets/branding/CargoSync_name_tagline.png";
 
 const ADMIN_NAV_ITEMS = [
   { label: "Dashboard", path: "/app/overview" },
@@ -116,13 +118,13 @@ export function AppShell() {
             )}
             <Link to="/app/overview" style={{ display: "flex", alignItems: "center", gap: 8, textDecoration: "none", color: "inherit" }} aria-label="CargoSync">
               <img 
-                src="/src/assets/branding/CargoSync_Logo.png" 
+                src={CargoSyncLogo} 
                 alt="" 
                 style={{ width: 22, height: 22, objectFit: "contain" }} 
               />
               {!isMobile && (
                 <img 
-                  src="/src/assets/branding/CargoSync_name_tagline.png" 
+                  src={CargoSyncNameTagline} 
                   alt="CargoSync" 
                   style={{ height: 20, objectFit: "contain" }} 
                 />
