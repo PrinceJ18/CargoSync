@@ -1,10 +1,11 @@
 import uuid
-from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean, ForeignKey
+from sqlalchemy import Column, Integer, String, DateTime, Numeric, Boolean, ForeignKey, Enum
 from sqlalchemy.orm import relationship
 from sqlalchemy.dialects.postgresql import UUID, JSONB
 from sqlalchemy.sql import func
 from geoalchemy2 import Geography
 from app.db.database import Base
+from app.services.optimization.return_loads.schemas import ReturnLoadAssignmentStatus
 
 class Operator(Base):
     __tablename__ = "operators"
@@ -104,7 +105,7 @@ class ReturnLoadAssignment(Base):
     route_id = Column(UUID(as_uuid=True), nullable=False)
     vehicle_id = Column(UUID(as_uuid=True), nullable=False)
     return_load_id = Column(UUID(as_uuid=True), ForeignKey("return_loads.id", ondelete="CASCADE"), nullable=False)
-    assignment_status = Column(String, nullable=False, default="ASSIGNED")
+    assignment_status = Column(Enum(ReturnLoadAssignmentStatus, name="return_load_assignment_status", create_type=False), nullable=False, default=ReturnLoadAssignmentStatus.ASSIGNED)
     incremental_detour_meters = Column(Numeric, nullable=False)
     incremental_duration_seconds = Column(Numeric, nullable=False)
     rejection_reason = Column(String, nullable=True)
