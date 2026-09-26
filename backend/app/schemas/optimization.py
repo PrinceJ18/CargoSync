@@ -2,6 +2,14 @@ from pydantic import BaseModel, Field
 from typing import List, Optional, Dict, Any
 from uuid import UUID
 from datetime import datetime
+from enum import Enum
+
+class OptimizationStatus(str, Enum):
+    PENDING = "PENDING"
+    RUNNING = "RUNNING"
+    COMPLETED = "COMPLETED"
+    PARTIAL = "PARTIAL"
+    FAILED = "FAILED"
 
 class OptimizationConfigOverride(BaseModel):
     eps_km: Optional[float] = None
@@ -38,7 +46,7 @@ class OptimizationMetricsResult(BaseModel):
 
 class OptimizationRunResponse(BaseModel):
     run_id: UUID = Field(description="A unique identifier for this orchestration run")
-    status: str = Field(..., description="COMPLETED, FAILED, PARTIAL")
+    status: OptimizationStatus = Field(..., description="COMPLETED, FAILED, PARTIAL")
     scenario: str
     solver_status: Optional[str] = None
     diagnostics: List[OptimizationDiagnostic] = Field(default_factory=list)

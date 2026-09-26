@@ -6,6 +6,7 @@ from sqlalchemy.sql import func
 from geoalchemy2 import Geography
 from app.db.database import Base
 from app.services.optimization.return_loads.schemas import ReturnLoadAssignmentStatus
+from app.schemas.optimization import OptimizationStatus
 
 class Operator(Base):
     __tablename__ = "operators"
@@ -118,7 +119,7 @@ class OptimizationRun(Base):
     id = Column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     operator_id = Column(UUID(as_uuid=True), ForeignKey("operators.id", ondelete="SET NULL"), nullable=True)
     scenario = Column(String, nullable=False, default="DEMO")
-    status = Column(String, nullable=False, default="PENDING")
+    status = Column(Enum(OptimizationStatus, name="optimization_status", create_type=False), nullable=False, default=OptimizationStatus.PENDING)
     solver_status = Column(String, nullable=True)
     config_snapshot = Column(JSONB, nullable=False)
     diagnostics = Column(JSONB, nullable=False, server_default='[]')
