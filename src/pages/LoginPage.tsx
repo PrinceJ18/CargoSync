@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import { Building2, ShieldCheck } from "lucide-react";
+import { Building2, ShieldCheck, Play } from "lucide-react";
 import { C, font } from "../data/prototype/designTokens";
 import { useMobile } from "../hooks/useMobile";
+import { useDemo } from "../contexts/DemoContext";
 import { supabase } from "../lib/supabase/client";
 import CargoSyncBanner from "../assets/branding/CargoSync_Banner_WhiteBg.png";
 import CargoSyncLogo from "../assets/branding/CargoSync_Logo.png";
@@ -10,11 +11,13 @@ import CargoSyncLogo from "../assets/branding/CargoSync_Logo.png";
 export function LoginPage() {
   const navigate = useNavigate();
   const isMobile = useMobile();
+  const { enterDemo } = useDemo();
   const [mode, setMode] = useState<"select" | "business" | "admin">("select");
   const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
+  const [demoLoading, setDemoLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Clear errors when toggling modes
@@ -52,6 +55,18 @@ export function LoginPage() {
     } finally {
       setLoading(false);
     }
+  };
+
+  // ─── Demo Login Handler ──────────────────────────────────────
+  // Enters demo mode without any Supabase interaction
+  const handleDemoLogin = (role: "business" | "admin") => {
+    setDemoLoading(true);
+    setError(null);
+    // Small delay for visual feedback
+    setTimeout(() => {
+      enterDemo(role === "admin" ? "ADMIN" : "OPERATOR");
+      navigate("/app/overview");
+    }, 300);
   };
 
   if (mode === "select") {
@@ -239,7 +254,7 @@ export function LoginPage() {
           <button 
             className="c-btn-primary"
             onClick={handleAuth} 
-            disabled={loading}
+            disabled={loading || demoLoading}
             style={{
               width: "100%", marginTop: 32, background: C.coral, color: C.ivory, border: "none", padding: "14px", borderRadius: 6,
               fontSize: 15, fontWeight: 600, cursor: loading ? "wait" : "pointer", opacity: loading ? 0.7 : 1, transition: "background 0.2s ease"
@@ -247,8 +262,51 @@ export function LoginPage() {
           >
             {loading ? "Authenticating..." : isSignUp ? "Sign Up" : isBiz ? "Sign in to Business Portal" : "Sign in to Admin Console"}
           </button>
+
+          {/* ─── Demo Login Divider & Button ─── */}
+          {!isSignUp && (
+            <>
+              <div style={{ display: "flex", alignItems: "center", gap: 14, marginTop: 24 }}>
+                <div style={{ flex: 1, height: 1, background: "rgba(20, 23, 31, 0.1)" }} />
+                <span style={{ fontSize: 12, color: C.slate, fontWeight: 500, whiteSpace: "nowrap" }}>or try a demo</span>
+                <div style={{ flex: 1, height: 1, background: "rgba(20, 23, 31, 0.1)" }} />
+              </div>
+              <button
+                id={isBiz ? "demo-login-business" : "demo-login-admin"}
+                onClick={() => handleDemoLogin(isBiz ? "business" : "admin")}
+                disabled={demoLoading || loading}
+                style={{
+                  width: "100%",
+                  marginTop: 16,
+                  background: "transparent",
+                  color: isBiz ? C.coral : C.navy,
+                  border: `1.5px solid ${isBiz ? C.coral : C.navy}`,
+                  padding: "13px",
+                  borderRadius: 6,
+                  fontSize: 14.5,
+                  fontWeight: 600,
+                  cursor: demoLoading ? "wait" : "pointer",
+                  opacity: demoLoading ? 0.7 : 1,
+                  transition: "all 0.2s ease",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  gap: 8,
+                }}
+              >
+                <Play size={14} />
+                {demoLoading ? "Entering Demo..." : isBiz ? "Business Demo Login" : "Admin Demo Login"}
+              </button>
+              <div style={{ fontSize: 11.5, color: C.slate, marginTop: 10, textAlign: "center", opacity: 0.7, lineHeight: 1.5 }}>
+                {isBiz
+                  ? "Explore the operator experience with sample logistics data."
+                  : "Explore the admin console with network-wide sample data."
+                }
+              </div>
+            </>
+          )}
           
-          <div style={{ fontSize: 13.5, color: C.slate, marginTop: 24, textAlign: "center" }}>
+          <div style={{ fontSize: 13.5, color: C.slate, marginTop: 20, textAlign: "center" }}>
             {isSignUp ? "Already have an account?" : "Don't have an account?"}{" "}
             <button aria-label={isSignUp ? "Switch to Sign In" : "Switch to Sign Up"} onClick={() => setIsSignUp(!isSignUp)} style={{ color: C.coral, cursor: "pointer", fontWeight: 600, background: "none", border: "none", padding: 0 }}>
               {isSignUp ? "Sign In" : "Sign Up"}

@@ -3,6 +3,7 @@ import type { Session, User } from "@supabase/supabase-js";
 import { supabase } from "../lib/supabase/client";
 import { request } from "../services/apiClient";
 import type { ApiError } from "../types/api";
+import { useDemo } from "./DemoContext";
 
 export interface Profile {
   id: string;
@@ -30,6 +31,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [isLoading, setIsLoading] = useState(true);
   const [authError, setAuthError] = useState<ApiError | null>(null);
 
+  // ─── Demo Mode Integration ─────────────────────────────────────
+  // When demo mode is active, we provide a synthetic profile
+  // without touching Supabase at all.
+  const { isDemo, demoRole } = useDemo();
+
   const fetchProfile = async () => {
     setAuthError(null);
     try {
@@ -50,14 +56,52 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const retryAuth = () => {
     setIsLoading(true);
     setAuthError(null);
-    if (session?.user) {
+    if (isDemo) {
+      // In demo mode, just re-apply the synthetic profile
+      setIsLoading(false);
+    } else if (session?.user) {
       fetchProfile().finally(() => setIsLoading(false));
     } else {
       setIsLoading(false);
     }
   };
 
+  // ─── Demo Mode Effect ──────────────────────────────────────────
+  // When demo mode activates/deactivates, update the profile accordingly.
   useEffect(() => {
+    if (isDemo && demoRole) {
+      // Provide a synthetic profile matching the reference accounts
+      if (demoRole === "ADMIN") {
+        setProfile({
+          id: "demo-admin",
+          role: "ADMIN",
+          operator_id: null,
+          operator_name: null,
+          email: "demo-admin@cargosync.ai",
+        });
+      } else {
+        // OPERATOR — matches Shree Balaji Logistics (Operator 1)
+        setProfile({
+          id: "demo-operator",
+          role: "OPERATOR",
+          operator_id: "11111111-1111-1111-1111-111111111111",
+          operator_name: "Shree Balaji Logistics",
+          email: "demo-business@cargosync.ai",
+        });
+      }
+      setAuthError(null);
+      setIsLoading(false);
+    }
+  }, [isDemo, demoRole]);
+
+  // ─── Normal Supabase Auth (unchanged) ──────────────────────────
+  useEffect(() => {
+    // Skip real auth initialization when in demo mode
+    if (isDemo) {
+      setIsLoading(false);
+      return;
+    }
+
     // 1. Initialize session on mount
     supabase.auth.getSession().then(async ({ data: { session }, error }) => {
       if (error) {
@@ -96,7 +140,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => {
       subscription.unsubscribe();
     };
-  }, []);
+  }, [isDemo]);
 
   return (
     <AuthContext.Provider value={{ session, user, profile, isLoading, authError, retryAuth }}>

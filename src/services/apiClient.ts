@@ -54,6 +54,29 @@ async function handleResponse<T>(response: Response): Promise<T> {
  * This establishes the boundary between UI components and backend fetching logic.
  */
 export async function request<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  // ─── Demo Mode Intercept ───────────────────────────────────────
+  // When demo mode is active, return fixture data instead of calling the backend.
+  // We read directly from sessionStorage (same key as DemoContext) because this
+  // module is not a React component and cannot use hooks.
+  try {
+    const demoState = sessionStorage.getItem("cargosync_demo_mode");
+    if (demoState) {
+      const parsed = JSON.parse(demoState);
+      if (parsed.isDemo) {
+        const { resolveDemoApiCall } = await import("./demoApiData");
+        const demoResult = resolveDemoApiCall<T>(endpoint, options);
+        if (demoResult !== null) {
+          return demoResult;
+        }
+        // If null, the endpoint wasn't recognized — fall through to real API
+        // (this shouldn't happen in practice, but is a safe fallback)
+      }
+    }
+  } catch {
+    // Ignore sessionStorage/parse errors — proceed with real API
+  }
+  // ─── End Demo Mode Intercept ───────────────────────────────────
+
   const url = `${env.API_BASE_URL}${endpoint}`;
 
   // Fetch the current session to inject the JWT

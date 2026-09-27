@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { DemoProvider } from "./contexts/DemoContext";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/shared/ProtectedRoute";
 import { LandingPage } from "./pages/LandingPage";
@@ -19,6 +20,7 @@ import { ErrorBoundary } from "./components/shared/ErrorBoundary";
 
 export default function CargoSyncPrototype() {
   return (
+    <DemoProvider>
     <AuthProvider>
       <BrowserRouter>
         <Routes>
@@ -57,5 +59,6 @@ export default function CargoSyncPrototype() {
         </Routes>
       </BrowserRouter>
     </AuthProvider>
+    </DemoProvider>
   );
 }

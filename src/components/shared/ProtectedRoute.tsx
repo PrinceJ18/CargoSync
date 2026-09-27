@@ -1,9 +1,11 @@
 import React from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "../../contexts/AuthContext";
+import { useDemo } from "../../contexts/DemoContext";
 
 export const ProtectedRoute: React.FC = () => {
   const { session, isLoading, authError, retryAuth } = useAuth();
+  const { isDemo } = useDemo();
 
   if (isLoading) {
     return (
@@ -27,7 +29,8 @@ export const ProtectedRoute: React.FC = () => {
     );
   }
 
-  if (!session) {
+  // Allow access if demo mode is active OR if a real Supabase session exists
+  if (!session && !isDemo) {
     return <Navigate to="/login" replace />;
   }
 

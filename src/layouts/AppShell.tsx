@@ -4,6 +4,7 @@ import { Search, Bell, ChevronDown, Menu, X } from "lucide-react";
 import { C, font, mono } from "../data/prototype/designTokens";
 import { supabase } from "../lib/supabase/client";
 import { useAuth } from "../contexts/AuthContext";
+import { useDemo } from "../contexts/DemoContext";
 import { useMobile } from "../hooks/useMobile";
 import CargoSyncLogo from "../assets/branding/CargoSync_Logo.png";
 import CargoSyncNameTagline from "../assets/branding/CargoSync_name_tagline.png";
@@ -41,6 +42,7 @@ export function AppShell() {
   const isMobile = useMobile();
   const menuRef = useRef<HTMLDivElement>(null);
   const { user, profile, isLoading } = useAuth();
+  const { isDemo, demoRole, exitDemo } = useDemo();
 
   // Close dropdown and mobile nav on route change
   useEffect(() => {
@@ -73,9 +75,14 @@ export function AppShell() {
   }, [menu]);
 
   const handleLogout = useCallback(async () => {
-    await supabase.auth.signOut();
-    navigate("/");
-  }, [navigate]);
+    if (isDemo) {
+      exitDemo();
+      navigate("/login");
+    } else {
+      await supabase.auth.signOut();
+      navigate("/");
+    }
+  }, [navigate, isDemo, exitDemo]);
 
   // Safe display fallbacks
   let displayName = "Loading...";
@@ -101,6 +108,44 @@ export function AppShell() {
   return (
     <div style={{ fontFamily: font, background: C.stone, minHeight: "100vh", display: "flex", flexDirection: "column" }}>
       <style>{`.spin{animation:spin 1s linear infinite}@keyframes spin{to{transform:rotate(360deg)}}`}</style>
+
+      {/* Demo Mode Banner */}
+      {isDemo && (
+        <div style={{
+          background: "linear-gradient(90deg, #E8542E 0%, #D44826 100%)",
+          color: "#fff",
+          padding: "6px 26px",
+          fontSize: 12.5,
+          fontWeight: 600,
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          letterSpacing: "0.02em",
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <span style={{ background: "rgba(255,255,255,0.2)", padding: "2px 8px", borderRadius: 4, fontSize: 10, fontWeight: 700, letterSpacing: "0.08em" }}>DEMO MODE</span>
+            <span style={{ opacity: 0.9 }}>
+              {demoRole === "ADMIN" ? "Admin Console — Network-wide view with sample data" : "Business Portal — Shree Balaji Logistics with sample data"}
+            </span>
+          </div>
+          <button
+            onClick={handleLogout}
+            style={{
+              background: "rgba(255,255,255,0.15)",
+              border: "1px solid rgba(255,255,255,0.3)",
+              color: "#fff",
+              padding: "3px 12px",
+              borderRadius: 4,
+              fontSize: 11,
+              fontWeight: 600,
+              cursor: "pointer",
+              transition: "all 0.2s ease",
+            }}
+          >
+            Exit Demo
+          </button>
+        </div>
+      )}
 
       {/* Helper to adapt labels for operators */}
       {(() => {
@@ -158,8 +203,8 @@ export function AppShell() {
               <button aria-label="Notifications" style={{ background: "none", border: "none", padding: 0, cursor: "pointer" }}>
                 <Bell size={16} color={C.slate} />
               </button>
-              <div style={{ fontSize: 11, fontFamily: mono, color: C.emerald, display: "flex", alignItems: "center", gap: 5 }}>
-                <div style={{ width: 6, height: 6, borderRadius: "50%", background: C.emerald }} /> LIVE
+              <div style={{ fontSize: 11, fontFamily: mono, color: isDemo ? C.coral : C.emerald, display: "flex", alignItems: "center", gap: 5 }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: isDemo ? C.coral : C.emerald }} /> {isDemo ? "DEMO" : "LIVE"}
               </div>
             </>
           )}
@@ -184,7 +229,7 @@ export function AppShell() {
                 {["Profile", "Settings", "Workspace"].map((m) => (
                   <button role="menuitem" key={m} style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, cursor: "pointer", background: "none", border: "none" }}>{m}</button>
                 ))}
-                <button role="menuitem" onClick={handleLogout} style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, cursor: "pointer", color: C.coral, borderTop: `1px solid ${C.stone}`, background: "none", borderLeft: "none", borderRight: "none", borderBottom: "none" }}>Sign out</button>
+                <button role="menuitem" onClick={handleLogout} style={{ display: "block", width: "100%", textAlign: "left", padding: "10px 14px", fontSize: 13, cursor: "pointer", color: C.coral, borderTop: `1px solid ${C.stone}`, background: "none", borderLeft: "none", borderRight: "none", borderBottom: "none" }}>{isDemo ? "Exit Demo" : "Sign out"}</button>
               </div>
             )}
           </div>
