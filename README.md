@@ -1,121 +1,149 @@
-# CargoSync AI
+# CargoSync AI 🚚
 
-### Intelligent Freight Coordination, Route Optimization & Return-Load Management Platform
+### Intelligent Logistics Coordination Platform
+**Smart India Hackathon 2026 — SIH26205**
 
-> **CargoSync AI** is a logistics intelligence platform designed to improve freight coordination, vehicle utilization, route planning, and return-load efficiency through data-driven optimization.
+> **Move cargo. Not empty miles.**
 
----
+CargoSync AI is an intelligent logistics coordination platform designed to address inefficiencies in urban and regional freight movement by coordinating logistics capacity across multiple operators.
 
-## 📌 Overview
+The platform focuses on three core capabilities:
 
-CargoSync AI is a full-stack logistics optimization platform designed around a simple problem:
+- **Shared Delivery** — coordinate compatible delivery demand across multiple operators.
+- **Route Optimization** — optimize vehicle routes using operational constraints such as capacity, distance and time windows.
+- **Return Delivery Matching** — identify compatible return shipments for available vehicle capacity and reduce empty return journeys.
 
-> **How can logistics operators move more freight with better vehicle utilization, fewer empty journeys, lower operational cost, and more efficient routes?**
-
-Traditional freight operations often involve fragmented data, manual planning, inefficient vehicle allocation, empty return trips, and limited visibility across the logistics network.
-
-CargoSync brings these operational processes into a unified platform.
-
-It combines:
-
-- 🚚 Fleet & vehicle management
-- 📦 Order management
-- 🏢 Depot management
-- 🗺️ Road-network routing
-- 📍 Geographic clustering
-- 🧠 Route optimization
-- 🔄 Return-load matching
-- 📊 Operational analytics
-- 👥 Role-based access
-- 🔐 Secure authentication
-- ⚙️ Optimization run management
-
-The platform is designed with a network-level perspective, allowing administrators and operators to work with the same operational ecosystem while maintaining role-specific responsibilities.
+CargoSync is designed around the idea that logistics should be treated as a **network coordination problem**, rather than as isolated trips handled independently by individual operators.
 
 ---
 
-# 🎯 Problem Statement
+## 🎯 Smart India Hackathon Problem Statement
 
-Modern logistics networks face several interconnected challenges:
+**Problem Statement ID:** SIH26205
 
-### 1. Inefficient Vehicle Utilization
+**Problem Statement:**
 
-Vehicles may operate below their available capacity while other orders require additional transportation resources.
+> *Student Innovation — Submit your ideas to address the growing pressures on the city’s resources, transport networks, and logistic infrastructure.*
 
-### 2. Empty Return Journeys
-
-A vehicle delivering goods to a destination may return without carrying another suitable load.
-
-This creates:
-
-- Additional fuel consumption
-- Increased operating cost
-- Lower vehicle productivity
-- Unnecessary road utilization
-
-### 3. Manual Route Planning
-
-Traditional planning processes can depend heavily on manual decisions and static assumptions.
-
-As the number of:
-
-- Orders
-- Vehicles
-- Depots
-- Locations
-- Constraints
-
-increases, manual planning becomes increasingly difficult.
-
-### 4. Fragmented Operational Visibility
-
-Orders, vehicles, routes, optimization results, and operational analytics may exist in separate systems.
-
-This makes it difficult to obtain a unified view of the logistics network.
-
-### 5. Geographic Complexity
-
-Orders are distributed across different geographic locations.
-
-Efficient planning therefore requires considering geographic proximity and actual road-network distances rather than relying only on raw coordinates.
+**Category:** Software  
+**Theme:** Transportation & Logistics
 
 ---
 
-# 💡 CargoSync AI Solution
+# 🚨 Problem
 
-CargoSync AI addresses these challenges through a centralized logistics intelligence platform.
+Traditional logistics operations are often fragmented across different operators, vehicles and delivery networks.
 
-The system follows a multi-stage optimization workflow:
+This can lead to:
+
+- Uncoordinated deliveries
+- Underutilized vehicle capacity
+- Empty return journeys
+- Inefficient route planning
+- Higher unnecessary travel distance
+- Increased transportation cost
+- Limited coordination between independent operators
+- Difficulty utilizing available return capacity
+
+A vehicle may successfully complete its outbound delivery but return without cargo, while another shipment may simultaneously need transportation along a compatible route.
+
+CargoSync addresses this coordination gap.
+
+---
+
+# 💡 Solution
+
+CargoSync AI creates a coordinated logistics layer that connects delivery demand, vehicle capacity and compatible return shipments.
+
+Instead of optimizing individual trips in isolation, CargoSync considers the **network of orders, operators and available vehicle capacity**.
+
+The platform can:
+
+1. Collect and validate delivery orders.
+2. Validate geographical coordinates.
+3. Identify geographically related orders using clustering.
+4. Validate clusters against operational constraints.
+5. Consider vehicle capacity and delivery requirements.
+6. Optimize routes using an optimization engine.
+7. Evaluate return-load opportunities.
+8. Compare optimized results against a baseline.
+9. Present the resulting logistics improvements through a visual dashboard.
+
+---
+
+# 🧩 Three Core Pillars
+
+## 1. Shared Delivery
+
+CargoSync identifies opportunities to coordinate compatible delivery demand across multiple operators.
+
+The objective is to improve vehicle utilization by making better use of available transportation capacity.
+
+**Focus:**
+
+- Multi-operator coordination
+- Compatible deliveries
+- Capacity sharing
+- Load consolidation
+- Better vehicle utilization
+
+---
+
+## 2. Route Optimization
+
+CargoSync generates optimized logistics plans while considering practical constraints.
+
+The optimization process can consider:
+
+- Vehicle capacity
+- Delivery locations
+- Distance
+- Time windows
+- Route feasibility
+- Available vehicles
+- Operational constraints
+
+The platform uses **Google OR-Tools** as the optimization engine.
+
+---
+
+## 3. Return Delivery Matching
+
+CargoSync evaluates the return journey after a delivery is completed.
+
+If a vehicle has remaining capacity on its return route, the platform can identify a compatible return shipment.
+
+This enables:
+
+**Delivery completed → Available return capacity → Compatible shipment → Return load assigned**
+
+The goal is to reduce unnecessary empty return kilometers and improve utilization of already-planned vehicle movement.
+
+---
+
+# ⚙️ CargoSync Optimization Pipeline
+
+The current CargoSync workflow follows a structured optimization pipeline:
 
 ```text
-Orders + Vehicles + Depots
-          │
-          ▼
-   Data Preparation
-          │
-          ▼
- Geographic Clustering
-          │
-          ▼
- Road-Network Routing
-          │
-          ▼
- Baseline Calculation
-          │
-          ▼
- Constraint Validation
-          │
-          ▼
- Optimization Engine
-          │
-          ▼
- Optimized Routes
-          │
-          ▼
- Return-Load Matching
-          │
-          ▼
- Re-Optimization
-          │
-          ▼
- Operational Analytics
+Orders
+   ↓
+Order Validation
+   ↓
+Coordinate Validation
+   ↓
+Geographic Clustering
+   ↓
+Cluster Validation
+   ↓
+Capacity Validation
+   ↓
+Road Distance Evaluation
+   ↓
+Route Optimization
+   ↓
+Return-Load Matching
+   ↓
+Baseline Comparison
+   ↓
+Savings & Impact Analysis
