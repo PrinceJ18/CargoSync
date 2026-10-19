@@ -1,7 +1,6 @@
 # CargoSync AI 🚚
 
 ### Intelligent Logistics Coordination Platform
-**Smart India Hackathon 2026 — SIH26205**
 
 > **Move cargo. Not empty miles.**
 
@@ -14,19 +13,6 @@ The platform focuses on three core capabilities:
 - **Return Delivery Matching** — identify compatible return shipments for available vehicle capacity and reduce empty return journeys.
 
 CargoSync is designed around the idea that logistics should be treated as a **network coordination problem**, rather than as isolated trips handled independently by individual operators.
-
----
-
-## 🎯 Smart India Hackathon Problem Statement
-
-**Problem Statement ID:** SIH26205
-
-**Problem Statement:**
-
-> *Student Innovation — Submit your ideas to address the growing pressures on the city’s resources, transport networks, and logistic infrastructure.*
-
-**Category:** Software  
-**Theme:** Transportation & Logistics
 
 ---
 
